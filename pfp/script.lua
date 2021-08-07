@@ -27,7 +27,6 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, tar
     server.removeMapLine(user_peer_id, g_savedata['ui_id'])
 
     local player_x, _, player_z = matrix.position(player_pos)
-    local target_x, _, target_z = matrix.position(target_pos)
     server.addMapObject(user_peer_id, g_savedata['ui_id'], 0, 1, player_x, player_z, 0, 0, 0, 0, 'matrix_start', 0, '')
     server.addMapObject(user_peer_id, g_savedata['ui_id'], 0, 0, target_x, target_z, 0, 0, 0, 0, 'matrix_end', 0, '')
 
@@ -688,7 +687,6 @@ function buildPathfinder()
         end
 
         local nearest_node_idx = nil
-        local nearest_node = nil
         local nearest_cost = nil
         for node_idx, node in pairs(pf._node_list) do
             if not node.visited then
@@ -698,7 +696,6 @@ function buildPathfinder()
             local cost = (node.x - end_node.x)^2 + (node.z - end_node.z)^2
             if nearest_cost == nil or cost < nearest_cost then
                 nearest_node_idx = node_idx
-                nearest_node = node
                 nearest_cost = cost
             end
             ::continue::
