@@ -373,7 +373,6 @@ function buildPathfinder()
                 table.insert(self._tile_list, {
                     x = x,
                     z = z,
-                    name = tile_data['name'],
                     joint = self._joint_tbl[tile_data['name']] or {},
                 })
                 ::continue::
