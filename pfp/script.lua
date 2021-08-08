@@ -657,7 +657,9 @@ function buildPathfinder()
         end
         local ret = heap[1].val
 
-        heap[1] = table.remove(heap)
+        heap[1] = heap[#heap]
+        table.remove(heap)
+
         local idx = 1
         while true do
             local child_idx = idx*2
