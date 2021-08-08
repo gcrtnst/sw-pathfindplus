@@ -437,7 +437,7 @@ function buildPathfinder()
                 local w_tile_z = this_node.z + self._tile_size*((joint_idx - 1)//3 - 1)
                 local w_tile_idx = (tile_tbl[w_tile_x] or {})[w_tile_z]
                 local w_tile = w_tile_idx ~= nil and self._tile_list[w_tile_idx] or nil
-                if (e_tile == nil or not e_tile.joint[4]) or (w_tile == nil or not w_tile.joint[6]) then
+                if (e_tile == nil or not e_tile.joint[4]) and (w_tile == nil or not w_tile.joint[6]) then
                     joint[joint_idx] = true
                 end
             end
@@ -450,7 +450,7 @@ function buildPathfinder()
                 local s_tile_z = this_node.z - self._tile_size
                 local s_tile_idx = (tile_tbl[s_tile_x] or {})[s_tile_z]
                 local s_tile = s_tile_idx ~= nil and self._tile_list[s_tile_idx] or nil
-                if (n_tile == nil or not n_tile.joint[2]) or (s_tile == nil or not s_tile.joint[8]) then
+                if (n_tile == nil or not n_tile.joint[2]) and (s_tile == nil or not s_tile.joint[8]) then
                     joint[joint_idx] = true
                 end
             end
