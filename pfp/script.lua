@@ -473,13 +473,13 @@ function buildPathfinder()
         local start_x, _, start_z = matrix.position(matrix_start)
         local end_x, _, end_z = matrix.position(matrix_end)
 
-        self._start_node_idx = self:_addFreeNode(start_x, start_z)
-        self._end_node_idx = self:_addFreeNode(end_x, end_z)
+        self._start_node_idx = self:_addTempNode(start_x, start_z)
+        self._end_node_idx = self:_addTempNode(end_x, end_z)
         self:_calcPath()
         return self:_getPathList()
     end
 
-    function pf:_addFreeNode(x, z)
+    function pf:_addTempNode(x, z)
         table.insert(self._node_list, {
             x = x,
             z = z,

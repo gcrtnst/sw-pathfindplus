@@ -3,7 +3,7 @@
 function test()
     local test_tbl = {
         {name = 'testInitNodeList', fn = testInitNodeList},
-        {name = 'testAddFreeNode', fn = testAddFreeNode},
+        {name = 'testAddTempNode', fn = testAddTempNode},
         {name = 'testTestRectAndLineCollision', fn = testTestRectAndLineCollision},
         {name = 'testTestLineAndLineCollision', fn = testTestLineAndLineCollision},
         {name = 'testCalcPath', fn = testCalcPath},
@@ -311,7 +311,7 @@ function testInitNodeList(pf)
     end
 end
 
-function testAddFreeNode(pf)
+function testAddTempNode(pf)
     local case_tbl = {
         {
             input_tile_list = {
@@ -595,7 +595,7 @@ function testAddFreeNode(pf)
         pf._world_x2 = case.input_world_x2
         pf._world_z2 = case.input_world_z2
 
-        local node_idx = pf:_addFreeNode(table.unpack(case.input_args))
+        local node_idx = pf:_addTempNode(table.unpack(case.input_args))
         if case.expected_node_idx ~= node_idx then
             error(string.format('case #%d: wrong node_idx (expected %s, got %s)', case_idx, case.expected_node_idx, node_idx))
         end
@@ -1211,7 +1211,7 @@ function testClone(pf)
 
     local num_pf_node = #pf._node_list
     local num_cpf_node = #cpf._node_list
-    cpf:_addFreeNode(0, 0)
+    cpf:_addTempNode(0, 0)
     if #pf._node_list ~= num_pf_node then
         error('original pathfinder modified unexpectedly')
     end
