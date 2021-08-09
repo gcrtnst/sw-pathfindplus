@@ -462,7 +462,7 @@ function buildPathfinder()
                 local next_node_idx = (node_tbl[next_node_x] or {})[next_node_z]
                 if next_node_idx ~= nil then
                     local next_node = self._node_list[next_node_idx]
-                    edge_tbl[next_node_idx] = (next_node.x - this_node.x)^2 + (next_node.z - this_node.z)^2
+                    edge_tbl[next_node_idx] = math.sqrt((next_node.x - this_node.x)^2 + (next_node.z - this_node.z)^2)
                 end
             end
             this_node.edge_tbl = edge_tbl
@@ -499,7 +499,7 @@ function buildPathfinder()
                 goto continue
             end
 
-            local cost = (node.x - this_node.x)^2 + (node.z - this_node.z)^2
+            local cost = math.sqrt((node.x - this_node.x)^2 + (node.z - this_node.z)^2)
             if next_cost == nil or cost < next_cost then
                 next_node_idx = node_idx
                 next_node = node
@@ -529,7 +529,7 @@ function buildPathfinder()
 
             for next_node_idx, next_node in pairs(self._node_list) do
                 if next_node_idx ~= this_node_idx and math.abs(next_node.x - tile_x) <= self._tile_size and math.abs(next_node.z - tile_z) <= self._tile_size then
-                    local cost = (next_node.x - this_node.x)^2 + (next_node.z - this_node.z)^2
+                    local cost = math.sqrt((next_node.x - this_node.x)^2 + (next_node.z - this_node.z)^2)
                     this_node.edge_tbl[next_node_idx] = cost
                     next_node.edge_tbl[this_node_idx] = cost
                 end
@@ -552,7 +552,7 @@ function buildPathfinder()
                 goto continue
             end
 
-            local cost = (next_node.x - this_node.x)^2 + (next_node.z - this_node.z)^2
+            local cost = math.sqrt((next_node.x - this_node.x)^2 + (next_node.z - this_node.z)^2)
             this_node.edge_tbl[next_node_idx] = cost
             next_node.edge_tbl[this_node_idx] = cost
 
