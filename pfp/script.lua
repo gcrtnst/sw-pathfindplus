@@ -704,7 +704,7 @@ function buildPathfinder()
         local this_node_idx = nearest_node_idx
 
         local path_list = {}
-        while this_node_idx ~= self._start_node_idx do
+        while this_node_idx ~= nil and this_node_idx ~= self._start_node_idx do
             local this_node = self._node_list[this_node_idx]
             table.insert(path_list, 1, {x = this_node.x, z = this_node.z})
             this_node_idx = this_node.prev
