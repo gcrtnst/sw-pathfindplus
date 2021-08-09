@@ -53,27 +53,37 @@ end
 
 function buildPathfinder()
     local pf = {
-        _joint_tbl = {},
-        _tile_list = {},
-        _node_list = {},
-        _start_node_idx = nil,
-        _end_node_idx = nil,
         _world_x1 = -64000,
         _world_z1 = -64000,
         _world_x2 = 64000,
         _world_z2 = 128000,
         _tile_size = 500,
+        _joint_tbl = {},
+        _tile_list = {},
+        _node_list = {},
+        _num_perm_node = 0,
+        _start_node_idx = nil,
+        _end_node_idx = nil,
     }
 
     function pf:pathfindOcean(matrix_start, matrix_end)
-        local cpf = self:_clone()
-        return cpf:_pathfindOcean(matrix_start, matrix_end)
+        local start_x, _, start_z = matrix.position(matrix_start)
+        local end_x, _, end_z = matrix.position(matrix_end)
+
+        self:_reset()
+        self._start_node_idx = self:_addTempNode(start_x, start_z)
+        self._end_node_idx = self:_addTempNode(end_x, end_z)
+        self:_calcPath()
+        return self:_getPathList()
     end
 
     function pf:_init()
         self._joint_tbl = {}
         self._tile_list = {}
         self._node_list = {}
+        self._num_perm_node = 0
+        self._start_node_idx = nil
+        self._end_node_idx = nil
         if self._world_x1%1 ~= 0 or self._world_z1%1 ~= 0 or self._world_x2%1 ~= 0 or self._world_z2%1 ~= 0 or self._tile_size%1 ~= 0 then
             return
         end
@@ -412,6 +422,7 @@ function buildPathfinder()
                 end
             end
         end
+        self._num_perm_node = #self._node_list
 
         local node_tbl = {}
         for node_idx, node in pairs(self._node_list) do
@@ -469,14 +480,24 @@ function buildPathfinder()
         end
     end
 
-    function pf:_pathfindOcean(matrix_start, matrix_end)
-        local start_x, _, start_z = matrix.position(matrix_start)
-        local end_x, _, end_z = matrix.position(matrix_end)
+    function pf:_reset()
+        self._start_node_idx = nil
+        self._end_node_idx = nil
 
-        self._start_node_idx = self:_addTempNode(start_x, start_z)
-        self._end_node_idx = self:_addTempNode(end_x, end_z)
-        self:_calcPath()
-        return self:_getPathList()
+        for node_idx = self._num_perm_node + 1, #self._node_list do
+            self._node_list[node_idx] = nil
+        end
+        for _, this_node in pairs(self._node_list) do
+            this_node.cost = nil
+            this_node.prev = nil
+            this_node.visited = false
+
+            for next_node_idx, _ in pairs(this_node.edge_tbl) do
+                if next_node_idx > self._num_perm_node then
+                    this_node.edge_tbl[next_node_idx] = nil
+                end
+            end
+        end
     end
 
     function pf:_addTempNode(x, z)
@@ -710,22 +731,6 @@ function buildPathfinder()
             this_node_idx = this_node.prev
         end
         return path_list
-    end
-
-    function pf:_clone()
-        local function deepcopy(v)
-            if type(v) ~= 'table' then
-                return v
-            end
-
-            local tbl = {}
-            for key, val in pairs(v) do
-                tbl[deepcopy(key)] = deepcopy(val)
-            end
-            return tbl
-        end
-
-        return deepcopy(self)
     end
 
     pf:_init()

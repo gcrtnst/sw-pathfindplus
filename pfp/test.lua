@@ -3,6 +3,7 @@
 function test()
     local test_tbl = {
         {name = 'testInitNodeList', fn = testInitNodeList},
+        {name = 'testReset', fn = testReset},
         {name = 'testAddTempNode', fn = testAddTempNode},
         {name = 'testTestRectAndLineCollision', fn = testTestRectAndLineCollision},
         {name = 'testTestLineAndLineCollision', fn = testTestLineAndLineCollision},
@@ -11,7 +12,6 @@ function test()
         {name = 'testHeapPush', fn = testHeapPush},
         {name = 'testHeapPop', fn = testHeapPop},
         {name = 'testGetPathList', fn = testGetPathList},
-        {name = 'testClone', fn = testClone},
     }
 
     local pf = buildPathfinder()
@@ -69,6 +69,7 @@ function testInitNodeList(pf)
                     visited = false,
                 },
             },
+            expected_num_perm_node = 4,
         },
         {
             input_tile_list = {
@@ -104,6 +105,7 @@ function testInitNodeList(pf)
                     visited = false,
                 },
             },
+            expected_num_perm_node = 3,
         },
         {
             input_tile_list = {
@@ -139,6 +141,7 @@ function testInitNodeList(pf)
                     visited = false,
                 },
             },
+            expected_num_perm_node = 3,
         },
         {
             input_tile_list = {
@@ -174,6 +177,7 @@ function testInitNodeList(pf)
                     visited = false,
                 },
             },
+            expected_num_perm_node = 3,
         },
         {
             input_tile_list = {
@@ -209,6 +213,7 @@ function testInitNodeList(pf)
                     visited = false,
                 },
             },
+            expected_num_perm_node = 3,
         },
         {
             input_tile_list = {
@@ -252,6 +257,7 @@ function testInitNodeList(pf)
                     visited = false,
                 },
             },
+            expected_num_perm_node = 4,
         },
         {
             input_tile_list = {
@@ -295,6 +301,7 @@ function testInitNodeList(pf)
                     visited = false,
                 },
             },
+            expected_num_perm_node = 4,
         },
     }
 
@@ -307,6 +314,80 @@ function testInitNodeList(pf)
         pf:_initNodeList()
         if not deepEqual(case.expected_node_list, pf._node_list) then
             error(string.format('case #%d: wrong node_list', case_idx))
+        end
+        if case.expected_num_perm_node ~= pf._num_perm_node then
+            error(string.format('case #%d: wrong num_perm_node (expected %s, got %s)', case_idx, case.expected_num_perm_node, pf._num_perm_node))
+        end
+    end
+end
+
+function testReset(pf)
+    local case_tbl = {
+        {
+            input_node_list = {
+                [1] = {
+                    x = 0,
+                    z = 0,
+                    edge_tbl = {[2] = 0, [3] = 0},
+                    cost = 0,
+                    prev = nil,
+                    visited = true,
+                },
+                [2] = {
+                    x = 0,
+                    z = 0,
+                    edge_tbl = {[1] = 0, [3] = 0},
+                    cost = 0,
+                    prev = 1,
+                    visited = true,
+                },
+                [3] = {
+                    x = 0,
+                    z = 0,
+                    edge_tbl = {[1] = 0, [2] = 0},
+                    cost = 0,
+                    prev = 1,
+                    visited = true,
+                },
+            },
+            input_num_perm_node = 2,
+            input_start_node_idx = 1,
+            input_end_node_idx = 3,
+            expected_node_list = {
+                [1] = {
+                    x = 0,
+                    z = 0,
+                    edge_tbl = {[2] = 0},
+                    cost = nil,
+                    prev = nil,
+                    visited = false,
+                },
+                [2] = {
+                    x = 0,
+                    z = 0,
+                    edge_tbl = {[1] = 0},
+                    cost = nil,
+                    prev = nil,
+                    visited = false,
+                },
+            },
+        },
+    }
+
+    for case_idx, case in ipairs(case_tbl) do
+        pf._node_list = deepCopy(case.input_node_list)
+        pf._num_perm_node = case.input_num_perm_node
+        pf._start_node_idx = case.input_start_node_idx
+        pf._end_node_idx = case.input_end_node_idx
+        pf:_reset()
+        if not deepEqual(case.expected_node_list, pf._node_list) then
+            error(string.format('case #%d: wrong node_list', case_idx))
+        end
+        if pf._start_node_idx ~= nil then
+            error(string.format('case #%d: wrong start_node_idx (expected nil, got %s)', case_idx, pf._start_node_idx))
+        end
+        if pf._end_node_idx ~= nil then
+            error(string.format('case #%d: wrong end_node_idx (expected nil, got %s)', case_idx, pf._end_node_idx))
         end
     end
 end
@@ -1200,23 +1281,6 @@ function testGetPathList(pf)
         if not deepEqual(case.expected_path_list, path_list) then
             error(string.format('case #%d: wrong path_list', case_idx))
         end
-    end
-end
-
-function testClone(pf)
-    local cpf = pf:_clone()
-    if not deepEqual(pf, cpf) then
-        error('cloned pathfinder is not equivalent to original pathfinder')
-    end
-
-    local num_pf_node = #pf._node_list
-    local num_cpf_node = #cpf._node_list
-    cpf:_addTempNode(0, 0)
-    if #pf._node_list ~= num_pf_node then
-        error('original pathfinder modified unexpectedly')
-    end
-    if #cpf._node_list ~= num_cpf_node + 1 then
-        error('cloned pathfinder was not modified as expected')
     end
 end
 
