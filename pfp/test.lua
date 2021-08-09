@@ -127,7 +127,7 @@ function testInitNodeList(pf)
         },
         {
             input_tile_list = {
-                {x = 0, z = 0, joint = {[1] = true}},
+                {x = 0, z = 0, terrain = {[1] = true}},
             },
             input_world_x1 = 0,
             input_world_z1 = 0,
@@ -163,7 +163,7 @@ function testInitNodeList(pf)
         },
         {
             input_tile_list = {
-                {x = 0, z = 0, joint = {[3] = true}},
+                {x = 0, z = 0, terrain = {[3] = true}},
             },
             input_world_x1 = 0,
             input_world_z1 = 0,
@@ -199,7 +199,7 @@ function testInitNodeList(pf)
         },
         {
             input_tile_list = {
-                {x = 0, z = 0, joint = {[7] = true}},
+                {x = 0, z = 0, terrain = {[7] = true}},
             },
             input_world_x1 = 0,
             input_world_z1 = 0,
@@ -235,7 +235,7 @@ function testInitNodeList(pf)
         },
         {
             input_tile_list = {
-                {x = 0, z = 0, joint = {[9] = true}},
+                {x = 0, z = 0, terrain = {[9] = true}},
             },
             input_world_x1 = 0,
             input_world_z1 = 0,
@@ -271,7 +271,7 @@ function testInitNodeList(pf)
         },
         {
             input_tile_list = {
-                {x = 0, z = 0, joint = {[4] = true, [6] = true}},
+                {x = 0, z = 0, terrain = {[4] = true, [6] = true}},
             },
             input_world_x1 = 0,
             input_world_z1 = 0,
@@ -315,7 +315,7 @@ function testInitNodeList(pf)
         },
         {
             input_tile_list = {
-                {x = 0, z = 0, joint = {[2] = true, [8] = true}},
+                {x = 0, z = 0, terrain = {[2] = true, [8] = true}},
             },
             input_world_x1 = 0,
             input_world_z1 = 0,
@@ -450,7 +450,7 @@ function testAddTempNode(pf)
     local case_tbl = {
         {
             input_tile_list = {
-                {x = 0, z = 0, joint = {[1] = true, [2] = true, [3] = true, [4] = true, [6] = true, [7] = true, [8] = true, [9] = true}},
+                {x = 0, z = 0, terrain = {[1] = true, [2] = true, [3] = true, [4] = true, [6] = true, [7] = true, [8] = true, [9] = true}},
             },
             input_node_list = {},
             input_world_x1 = 0,
@@ -472,7 +472,7 @@ function testAddTempNode(pf)
         },
         {
             input_tile_list = {
-                {x = 0, z = 0, joint = {[2] = true, [3] = true, [4] = true, [6] = true, [8] = true, [9] = true}},
+                {x = 0, z = 0, terrain = {[2] = true, [3] = true, [4] = true, [6] = true, [8] = true, [9] = true}},
             },
             input_node_list = {
                 [1] = {
@@ -527,7 +527,7 @@ function testAddTempNode(pf)
         },
         {
             input_tile_list = {
-                {x = 0, z = 0, joint = {[2] = true, [3] = true, [4] = true, [6] = true, [8] = true, [9] = true}},
+                {x = 0, z = 0, terrain = {[2] = true, [3] = true, [4] = true, [6] = true, [8] = true, [9] = true}},
             },
             input_node_list = {
                 [1] = {
@@ -651,7 +651,7 @@ function testAddTempNode(pf)
         },
         {
             input_tile_list = {
-                {x = 0, z = 0, joint = {[2] = true, [3] = true, [4] = true, [6] = true, [8] = true}},
+                {x = 0, z = 0, terrain = {[2] = true, [3] = true, [4] = true, [6] = true, [8] = true}},
             },
             input_node_list = {
                 [1] = {
