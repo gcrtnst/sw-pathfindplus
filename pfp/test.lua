@@ -2,6 +2,7 @@
 
 function test()
     local test_tbl = {
+        {name = 'testPathfindOcean', fn = testPathfindOcean},
         {name = 'testInitNodeList', fn = testInitNodeList},
         {name = 'testReset', fn = testReset},
         {name = 'testAddTempNode', fn = testAddTempNode},
@@ -23,6 +24,59 @@ function test()
             io.write(string.format('     %s\n', err))
         else
             io.write(string.format('PASS %s\n', test.name))
+        end
+    end
+end
+
+function testPathfindOcean(pf)
+    local case_tbl = {
+        {
+            input_matrix_start = {
+                1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                -500, 0, -1000, 1,
+            },
+            input_matrix_end = {
+                1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                -500, 0, 1000, 1,
+            },
+            expected_path_list = {
+                {x = -500, z = -500},
+                {x = -500, z = 500},
+                {x = -500, z = 1000},
+            },
+        },
+        {
+            input_matrix_start = {
+                1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                -500, 0, -1250, 1,
+            },
+            input_matrix_end = {
+                1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                -500, 0, 1250, 1,
+            },
+            expected_path_list = {
+                {x = -500, z = -500},
+                {x = -500, z = 500},
+                {x = -500, z = 1250},
+            },
+        },
+    }
+
+    for case_idx, case in pairs(case_tbl) do
+        local path_list = pf:pathfindOcean(case.input_matrix_start, case.input_matrix_end)
+        if not deepEqual(case.expected_path_list, path_list) then
+            error(string.format('case #%d: wrong path_list', case_idx))
+        end
+        if #pf._node_list ~= pf._num_perm_node + 2 then
+            error(string.format('case #%d: wrong num_of_node (expected %s, got %s)', pf._num_perm_node, #pf._node_list))
         end
     end
 end
