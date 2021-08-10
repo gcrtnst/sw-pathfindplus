@@ -17,13 +17,13 @@ def main():
     argp.add_argument('--out', default=Path(Path(__file__).parent, 'out.lua'), type=Path)
     args = argp.parse_args()
 
-    pfpjoint = PFPJoint(args.server_exe, args.server_dir)
-    code = pfpjoint.run(args.seed_start, args.seed_end + 1, log=sys.stdout)
+    pfpterrain = PFPTerrain(args.server_exe, args.server_dir)
+    code = pfpterrain.run(args.seed_start, args.seed_end + 1, log=sys.stdout)
     with args.out.open(mode='w') as fobj:
         fobj.write(code)
 
 
-class PFPJoint:
+class PFPTerrain:
     def __init__(self, server_exe, server_dir):
         self._exe = server_exe
         self._server_dir = server_dir
@@ -75,7 +75,7 @@ class PFPJoint:
 
     def _run_server(self):
         log = []
-        log_prefix = '[Announce] [pfpjoint] : '
+        log_prefix = '[Announce] [pfpterrain] : '
         with subprocess.Popen([self._exe.resolve(), '+server_dir', self._server_dir.resolve()], bufsize=0, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, cwd=self._exe.parent, text=True) as popen:
             try:
                 while True:
