@@ -292,6 +292,7 @@ function buildPathfinder()
             return
         end
         self._node_tbl[self._start_node_key].cost = {ocean_dist = 0, risky_dist = 0}
+        local end_node = self._node_tbl[self._end_node_key]
 
         local heap = {}
         self:_heapPush(heap, 0, 0, self._start_node_key)
@@ -315,8 +316,12 @@ function buildPathfinder()
                     ocean_dist = this_node.cost.ocean_dist + edge_cost.ocean_dist,
                     risky_dist = this_node.cost.risky_dist + edge_cost.risky_dist,
                 }
-                local astar_dist = math.sqrt((next_node.x + this_node.x)^2 + (next_node.z + this_node.z)^2)
                 if next_node.cost == nil or next_cost.risky_dist < next_node.cost.risky_dist or (next_cost.risky_dist == next_node.cost.risky_dist and next_cost.ocean_dist < next_node.cost.ocean_dist) then
+                    local astar_dist = 0
+                    if end_node ~= nil then
+                        astar_dist = math.sqrt((next_node.x - end_node.x)^2 + (next_node.z - end_node.z)^2)
+                    end
+
                     next_node.cost = next_cost
                     next_node.prev_key = this_node_key
                     self:_heapPush(heap, next_node.cost.risky_dist, next_node.cost.ocean_dist + astar_dist, next_node_key)
