@@ -19,6 +19,9 @@ function test()
     }
 
     local pf = buildPathfinder()
+    pf._node_tbl = {}
+    pf._temp_node_tbl = {}
+
     for _, test in ipairs(test_tbl) do
         local cpf = deepCopy(pf)
         local is_success, err = pcall(test.fn, cpf)
