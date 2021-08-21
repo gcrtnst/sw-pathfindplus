@@ -79,7 +79,7 @@ function buildPathfinder()
 
     function pf:getOceanReachable(matrix_start, matrix_end)
         self:_reset()
-        local world_area_key = self:_getNodeKey(0/0, 0/0)
+        local world_area_key = self:_getNodeKey(-1/0, -1/0)
 
         local start_area_key = world_area_key
         local start_x, _, start_z = matrix.position(matrix_start)
@@ -170,7 +170,7 @@ function buildPathfinder()
             node.area_key = nil
         end
 
-        local world_area_key = self:_getNodeKey(0/0, 0/0)
+        local world_area_key = self:_getNodeKey(-1/0, -1/0)
         for area_node_key, area_node in pairs(self._node_tbl) do
             if area_node.area_key ~= nil or not area_node.is_ocean then
                 goto continue
@@ -215,7 +215,7 @@ function buildPathfinder()
             z = z,
             is_ocean = true,
             edge_tbl = {},
-            area_key = self:_getNodeKey(0/0, 0/0),
+            area_key = self:_getNodeKey(-1/0, -1/0),
             visited = false,
             cost = nil,
             prev_key = nil,
