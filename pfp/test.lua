@@ -19,9 +19,8 @@ function test()
         {name = 'testHeapCompare', fn = testHeapCompare},
     }
 
-    local t = buildT()
     for _, test in ipairs(test_tbl) do
-        resetT(t)
+        local t = buildT()
         local is_success, err = pcall(test.fn, t)
         if not is_success then
             io.write(string.format('FAIL %s\n', test.name))
@@ -3256,26 +3255,12 @@ function buildT()
     local cfg = {}
     local env = buildEnv(cfg)
     loadfile('script.lua', 't', env)()
-
     local pf = env.buildPathfinder()
-    pf._node_tbl = {}
-    pf._temp_node_tbl = {}
-    pf._start_node_key = nil
-    pf._end_node_key = nil
-
     return {
         cfg = cfg,
         env = env,
-        pf = deepCopy(pf),
-        _pf = pf,
+        pf = pf,
     }
-end
-
-function resetT(t)
-    for key, _ in pairs(t.cfg) do
-        t.cfg[key] = nil
-    end
-    t.pf = deepCopy(t._pf)
 end
 
 function buildEnv(cfg)
@@ -3316,6 +3301,10 @@ function buildEnv(cfg)
         end
 
         return env.matrix.translation(mat_x, 0, mat_z), true
+    end
+
+    function env.server.isDev()
+        return true
     end
 
     function env.matrix.translation(x, y, z)

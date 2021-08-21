@@ -476,6 +476,8 @@ function buildPathfinder()
         end
     end
 
-    pf:_init()
+    if not server.isDev() then
+        pf:_init()
+    end
     return pf
 end
