@@ -53,10 +53,10 @@ end
 
 function buildPathfinder()
     local pf = {
-        _world_x1 = -77000,
-        _world_z1 = -65000,
-        _world_x2 = 65000,
-        _world_z2 = 131000,
+        _world_x1 = -76000,
+        _world_z1 = -64000,
+        _world_x2 = 64000,
+        _world_z2 = 130000,
         _tile_size = 1000,
         _node_tbl = {},
         _temp_node_tbl = {},
@@ -79,7 +79,7 @@ function buildPathfinder()
 
     function pf:getOceanReachable(matrix_start, matrix_end)
         self:_reset()
-        local world_area_key = self:_getNodeKey(self._world_x1, self._world_z1)
+        local world_area_key = self:_getNodeKey(0/0, 0/0)
 
         local start_area_key = world_area_key
         local start_x, _, start_z = matrix.position(matrix_start)
@@ -99,14 +99,6 @@ function buildPathfinder()
     end
 
     function pf:_init()
-        self._node_tbl = {}
-        self._temp_node_tbl = {}
-        self._start_node_key = nil
-        self._end_node_key = nil
-        if self._world_x1%1 ~= 0 or self._world_z1%1 ~= 0 or self._world_x2%1 ~= 0 or self._world_z2%1 ~= 0 or self._tile_size%1 ~= 0 then
-            return
-        end
-
         self:_initNode()
         self:_initEdge()
         self:_initArea()
@@ -118,8 +110,8 @@ function buildPathfinder()
         self._start_node_key = nil
         self._end_node_key = nil
 
-        for tile_x = self._world_x1, self._world_x2, self._tile_size do
-            for tile_z = self._world_z1, self._world_z2, self._tile_size do
+        for tile_x = self._world_x1 - self._tile_size, self._world_x2 + self._tile_size, self._tile_size do
+            for tile_z = self._world_z1 - self._tile_size, self._world_z2 + self._tile_size, self._tile_size do
                 local _, is_success = server.getOceanTransform(matrix.translation(tile_x, 0, tile_z), 0, 1)
                 local node_key = self:_getNodeKey(tile_x, tile_z)
                 self._node_tbl[node_key] = {
@@ -178,15 +170,15 @@ function buildPathfinder()
             node.area_key = nil
         end
 
-        local world_area_key = self:_getNodeKey(self._world_x1, self._world_z1)
+        local world_area_key = self:_getNodeKey(0/0, 0/0)
         for area_node_key, area_node in pairs(self._node_tbl) do
             if area_node.area_key ~= nil or not area_node.is_ocean then
                 goto continue
             end
 
-            local area_key = area_node_key
-            if area_node.x == self._world_x1 or area_node.z == self._world_z1 or area_node.x == self._world_x2 or area_node.z == self._world_z2 then
-                area_key = world_area_key
+            local area_key = world_area_key
+            if self._world_x1 <= area_node.x and area_node.x <= self._world_x2 and self._world_z1 <= area_node.z and area_node.z <= self._world_z2 then
+                area_key = area_node_key
             end
 
             local queue = {[area_node_key] = true}
@@ -223,7 +215,7 @@ function buildPathfinder()
             z = z,
             is_ocean = true,
             edge_tbl = {},
-            area_key = self:_getNodeKey(self._world_x1, self._world_z1),
+            area_key = self:_getNodeKey(0/0, 0/0),
             visited = false,
             cost = nil,
             prev_key = nil,
@@ -259,10 +251,10 @@ function buildPathfinder()
 
         for next_node_key, next_node in pairs(self._node_tbl) do
             if next_node_key ~= this_node_key and not self:_testRectAndLineCollision(
-                self._world_x1 + 1,
-                self._world_z1 + 1,
-                self._world_x2 - 1,
-                self._world_z2 - 1,
+                self._world_x1 - self._tile_size/2,
+                self._world_z1 - self._tile_size/2,
+                self._world_x2 + self._tile_size/2,
+                self._world_z2 + self._tile_size/2,
                 this_node.x,
                 this_node.z,
                 next_node.x,

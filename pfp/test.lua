@@ -3,6 +3,7 @@
 function test()
     local test_tbl = {
         {name = 'testGetOceanReachable', fn = testGetOceanReachable},
+        {name = 'testInitNode', fn = testInitNode},
         {name = 'testInitEdge', fn = testInitEdge},
         {name = 'testInitArea', fn = testInitArea},
         {name = 'testSetNode', fn = testSetNode},
@@ -18,13 +19,10 @@ function test()
         {name = 'testHeapCompare', fn = testHeapCompare},
     }
 
-    local pf = buildPathfinder()
-    pf._node_tbl = {}
-    pf._temp_node_tbl = {}
-
+    local t = buildT()
     for _, test in ipairs(test_tbl) do
-        local cpf = deepCopy(pf)
-        local is_success, err = pcall(test.fn, cpf)
+        resetT(t)
+        local is_success, err = pcall(test.fn, t)
         if not is_success then
             io.write(string.format('FAIL %s\n', test.name))
             io.write(string.format('     %s\n', err))
@@ -34,44 +32,30 @@ function test()
     end
 end
 
-function testGetOceanReachable(pf)
+function testGetOceanReachable(t)
     local case_tbl = {
         {
-            input_world_x1 = -1000,
-            input_world_z1 = -1000,
-            input_world_x2 = 1000,
-            input_world_z2 = 1000,
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 0, risky_dist = 0},
-                    prev_key = pf:_getNodeKey(0, 1000),
+                    prev_key = t.pf:_getNodeKey(0, 1000),
                 },
             },
-            input_matrix_start = {
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 0, 1,
-            },
-            input_matrix_end = {
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 0, 1,
-            },
+            input_matrix_start = t.env.matrix.translation(0, 0, 0),
+            input_matrix_end = t.env.matrix.translation(0, 0, 0),
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
@@ -80,69 +64,55 @@ function testGetOceanReachable(pf)
             expected_ret = true,
         },
         {
-            input_world_x1 = -2000,
-            input_world_z1 = -2000,
-            input_world_x2 = 2000,
-            input_world_z2 = 2000,
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = 1000, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1000)] = {
+                [t.pf:_getNodeKey(0, 1000)] = {
                     x = 0,
                     z = 1000,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 1000, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
             },
-            input_matrix_start = {
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 0, 1,
-            },
-            input_matrix_end = {
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 1000, 1,
-            },
+            input_matrix_start = t.env.matrix.translation(0, 0, 0),
+            input_matrix_end = t.env.matrix.translation(0, 0, 1000),
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = 1000, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1000)] = {
+                [t.pf:_getNodeKey(0, 1000)] = {
                     x = 0,
                     z = 1000,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 1000, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
@@ -151,61 +121,47 @@ function testGetOceanReachable(pf)
             expected_ret = true,
         },
         {
-            input_world_x1 = -2000,
-            input_world_z1 = -2000,
-            input_world_x2 = 2000,
-            input_world_z2 = 2000,
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1000)] = {
+                [t.pf:_getNodeKey(0, 1000)] = {
                     x = 0,
                     z = 1000,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(0, 1000),
+                    area_key = t.pf:_getNodeKey(0, 1000),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
             },
-            input_matrix_start = {
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 0, 1,
-            },
-            input_matrix_end = {
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 1000, 1,
-            },
+            input_matrix_start = t.env.matrix.translation(0, 0, 0),
+            input_matrix_end = t.env.matrix.translation(0, 0, 1000),
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1000)] = {
+                [t.pf:_getNodeKey(0, 1000)] = {
                     x = 0,
                     z = 1000,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(0, 1000),
+                    area_key = t.pf:_getNodeKey(0, 1000),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
@@ -214,12 +170,8 @@ function testGetOceanReachable(pf)
             expected_ret = false,
         },
         {
-            input_world_x1 = -2000,
-            input_world_z1 = -2000,
-            input_world_x2 = 2000,
-            input_world_z2 = 2000,
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = false,
@@ -229,7 +181,7 @@ function testGetOceanReachable(pf)
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1000)] = {
+                [t.pf:_getNodeKey(0, 1000)] = {
                     x = 0,
                     z = 1000,
                     is_ocean = false,
@@ -240,20 +192,10 @@ function testGetOceanReachable(pf)
                     prev_key = nil,
                 },
             },
-            input_matrix_start = {
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 0, 1,
-            },
-            input_matrix_end = {
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 1000, 1,
-            },
+            input_matrix_start = t.env.matrix.translation(0, 0, 0),
+            input_matrix_end = t.env.matrix.translation(0, 0, 1000),
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = false,
@@ -263,7 +205,7 @@ function testGetOceanReachable(pf)
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1000)] = {
+                [t.pf:_getNodeKey(0, 1000)] = {
                     x = 0,
                     z = 1000,
                     is_ocean = false,
@@ -277,41 +219,27 @@ function testGetOceanReachable(pf)
             expected_ret = false,
         },
         {
-            input_world_x1 = -1000,
-            input_world_z1 = -1000,
-            input_world_x2 = 1000,
-            input_world_z2 = 1000,
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(-1000, -1000),
+                    area_key = t.pf:_getNodeKey(0/0, 0/0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
             },
-            input_matrix_start = {
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 0, 1,
-            },
-            input_matrix_end = {
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 2000, 1,
-            },
+            input_matrix_start = t.env.matrix.translation(0, 0, 0),
+            input_matrix_end = t.env.matrix.translation(0, 0, 2000),
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(-1000, -1000),
+                    area_key = t.pf:_getNodeKey(0/0, 0/0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
@@ -320,41 +248,27 @@ function testGetOceanReachable(pf)
             expected_ret = true,
         },
         {
-            input_world_x1 = -1000,
-            input_world_z1 = -1000,
-            input_world_x2 = 1000,
-            input_world_z2 = 1000,
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(-1000, -1000),
+                    area_key = t.pf:_getNodeKey(0/0, 0/0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
             },
-            input_matrix_start = {
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 2000, 1,
-            },
-            input_matrix_end = {
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 0, 1,
-            },
+            input_matrix_start = t.env.matrix.translation(0, 0, 2000),
+            input_matrix_end = t.env.matrix.translation(0, 0, 0),
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(-1000, -1000),
+                    area_key = t.pf:_getNodeKey(0/0, 0/0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
@@ -365,13 +279,9 @@ function testGetOceanReachable(pf)
     }
 
     for case_idx, case in ipairs(case_tbl) do
-        pf._world_x1 = case.input_world_x1
-        pf._world_z1 = case.input_world_z1
-        pf._world_x2 = case.input_world_x2
-        pf._world_z2 = case.input_world_z2
-        pf._node_tbl = deepCopy(case.input_node_tbl)
-        local actual_ret = pf:getOceanReachable(case.input_matrix_start, case.input_matrix_end)
-        if not deepEqual(case.expected_node_tbl, pf._node_tbl) then
+        t.pf._node_tbl = deepCopy(case.input_node_tbl)
+        local actual_ret = t.pf:getOceanReachable(case.input_matrix_start, case.input_matrix_end)
+        if not deepEqual(case.expected_node_tbl, t.pf._node_tbl) then
             error(string.format('case #%d: wrong node_tbl', case_idx))
         end
         if actual_ret ~= case.expected_ret then
@@ -380,39 +290,18 @@ function testGetOceanReachable(pf)
     end
 end
 
-function testInitEdge(pf)
+function testInitNode(t)
     local case_tbl = {
-        input_node_tbl = {
-            [pf:_getNodeKey(0, 0)] = {
-                x = 0,
-                z = 0,
-                is_ocean = true,
-                edge_tbl = {
-                    [pf:_getNodeKey(0, 1)] = {ocean_dist = 0, risky_dist = 0},
-                },
-                area_key = pf:_getNodeKey(0, 0),
-                visited = true,
-                cost = {ocean_dist = 0, risky_dist = 0},
-                prev_key = pf:_getNodeKey(0, 1),
-            },
-        },
-        expected_node_tbl = {
-            [pf:_getNodeKey(0, 0)] = {
-                x = 0,
-                z = 0,
-                is_ocean = true,
-                edge_tbl = {},
-                area_key = nil,
-                visited = false,
-                cost = nil,
-                prev_key = nil,
-            },
-        },
         {
-            input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
-                    x = 0,
-                    z = 0,
+            input_tile_tbl = {},
+            input_world_x1 = -1000,
+            input_world_z1 = 0,
+            input_world_x2 = 1000,
+            input_world_z2 = 0,
+            expected_node_tbl = {
+                [t.pf:_getNodeKey(-2000, -1000)] = {
+                    x = -2000,
+                    z = -1000,
                     is_ocean = true,
                     edge_tbl = {},
                     area_key = nil,
@@ -420,7 +309,77 @@ function testInitEdge(pf)
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1000)] = {
+                [t.pf:_getNodeKey(-2000, -0)] = {
+                    x = -2000,
+                    z = -0,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(-2000, 1000)] = {
+                    x = -2000,
+                    z = 1000,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(-1000, -1000)] = {
+                    x = -1000,
+                    z = -1000,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(-1000, -0)] = {
+                    x = -1000,
+                    z = -0,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(-1000, 1000)] = {
+                    x = -1000,
+                    z = 1000,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(0, -1000)] = {
+                    x = 0,
+                    z = -1000,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(0, -0)] = {
+                    x = 0,
+                    z = -0,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(0, 1000)] = {
                     x = 0,
                     z = 1000,
                     is_ocean = true,
@@ -430,7 +389,156 @@ function testInitEdge(pf)
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(1000, 0)] = {
+                [t.pf:_getNodeKey(1000, -1000)] = {
+                    x = 1000,
+                    z = -1000,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(1000, -0)] = {
+                    x = 1000,
+                    z = -0,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(1000, 1000)] = {
+                    x = 1000,
+                    z = 1000,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(2000, -1000)] = {
+                    x = 2000,
+                    z = -1000,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(2000, -0)] = {
+                    x = 2000,
+                    z = -0,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(2000, 1000)] = {
+                    x = 2000,
+                    z = 1000,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+            },
+        },
+        {
+            input_tile_tbl = {},
+            input_world_x1 = 0,
+            input_world_z1 = -1000,
+            input_world_x2 = 0,
+            input_world_z2 = 1000,
+            expected_node_tbl = {
+                [t.pf:_getNodeKey(-1000, -2000)] = {
+                    x = -1000,
+                    z = -2000,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(0, -2000)] = {
+                    x = 0,
+                    z = -2000,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(1000, -2000)] = {
+                    x = 1000,
+                    z = -2000,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(-1000, -1000)] = {
+                    x = -1000,
+                    z = -1000,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(0, -1000)] = {
+                    x = 0,
+                    z = -1000,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(1000, -1000)] = {
+                    x = 1000,
+                    z = -1000,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(-1000, 0)] = {
+                    x = -1000,
+                    z = 0,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(0, 0)] = {
+                    x = 0,
+                    z = 0,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(1000, 0)] = {
                     x = 1000,
                     z = 0,
                     is_ocean = true,
@@ -440,7 +548,267 @@ function testInitEdge(pf)
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(1000, 1000)] = {
+                [t.pf:_getNodeKey(-1000, 1000)] = {
+                    x = -1000,
+                    z = 1000,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(0, 1000)] = {
+                    x = 0,
+                    z = 1000,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(1000, 1000)] = {
+                    x = 1000,
+                    z = 1000,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(-1000, 2000)] = {
+                    x = -1000,
+                    z = 2000,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(0, 2000)] = {
+                    x = 0,
+                    z = 2000,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(1000, 2000)] = {
+                    x = 1000,
+                    z = 2000,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+            },
+        },
+        {
+            input_tile_tbl = {
+                [0] = {
+                    [0] = {
+                        ['name'] = 'island',
+                        ['sea_floor'] = -30,
+                        ['cost'] = 0,
+                        ['purchased'] = false,
+                    },
+                },
+            },
+            input_world_x1 = 0,
+            input_world_z1 = 0,
+            input_world_x2 = 0,
+            input_world_z2 = 0,
+            expected_node_tbl = {
+                [t.pf:_getNodeKey(-1000, -1000)] = {
+                    x = -1000,
+                    z = -1000,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(-1000, 0)] = {
+                    x = -1000,
+                    z = 0,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(-1000, 1000)] = {
+                    x = -1000,
+                    z = 1000,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(0, -1000)] = {
+                    x = 0,
+                    z = -1000,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(0, 0)] = {
+                    x = 0,
+                    z = 0,
+                    is_ocean = false,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(0, 1000)] = {
+                    x = 0,
+                    z = 1000,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(1000, -1000)] = {
+                    x = 1000,
+                    z = -1000,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(1000, 0)] = {
+                    x = 1000,
+                    z = 0,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(1000, 1000)] = {
+                    x = 1000,
+                    z = 1000,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+            },
+        },
+    }
+
+    for case_idx, case in ipairs(case_tbl) do
+        t.cfg.tile_tbl = case.input_tile_tbl
+        t.pf._world_x1 = case.input_world_x1
+        t.pf._world_z1 = case.input_world_z1
+        t.pf._world_x2 = case.input_world_x2
+        t.pf._world_z2 = case.input_world_z2
+        t.pf._node_tbl = 'dummy'
+        t.pf._temp_node_tbl = 'dummy'
+        t.pf._start_node_key = 'dummy'
+        t.pf._end_node_key = 'dummy'
+        t.pf:_initNode()
+        if not deepEqual(case.expected_node_tbl, t.pf._node_tbl) then
+            error(string.format('case #%d: wrong node_tbl', case_idx))
+        end
+        if not deepEqual({}, t.pf._temp_node_tbl) then
+            error(string.format('case #%d: temp_node_tbl not empty', case_idx))
+        end
+        if t.pf._start_node_key ~= nil then
+            error(string.format('case #%d: wrong start_node_key (expected nil, got %s)', case_idx, t.pf._start_node_key))
+        end
+        if t.pf._end_node_key ~= nil then
+            error(string.format('case #5d: wrong end_node_key (expected nil, got %s)', case_idx, t.pf._end_node_key))
+        end
+    end
+end
+
+function testInitEdge(t)
+    local case_tbl = {
+        {
+            input_node_tbl = {
+                [t.pf:_getNodeKey(0, 0)] = {
+                    x = 0,
+                    z = 0,
+                    is_ocean = true,
+                    edge_tbl = {
+                        [t.pf:_getNodeKey(0, 1)] = {ocean_dist = 0, risky_dist = 0},
+                    },
+                    area_key = t.pf:_getNodeKey(0, 0),
+                    visited = true,
+                    cost = {ocean_dist = 0, risky_dist = 0},
+                    prev_key = t.pf:_getNodeKey(0, 1),
+                },
+            },
+            expected_node_tbl = {
+                [t.pf:_getNodeKey(0, 0)] = {
+                    x = 0,
+                    z = 0,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+            },
+        },
+        {
+            input_node_tbl = {
+                [t.pf:_getNodeKey(0, 0)] = {
+                    x = 0,
+                    z = 0,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(0, 1000)] = {
+                    x = 0,
+                    z = 1000,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(1000, 0)] = {
+                    x = 1000,
+                    z = 0,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = nil,
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+                [t.pf:_getNodeKey(1000, 1000)] = {
                     x = 1000,
                     z = 1000,
                     is_ocean = true,
@@ -452,56 +820,56 @@ function testInitEdge(pf)
                 },
             },
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = 1000, risky_dist = 0},
-                        [pf:_getNodeKey(1000, 0)] = {ocean_dist = 1000, risky_dist = 0},
-                        [pf:_getNodeKey(1000, 1000)] = {ocean_dist = math.sqrt(2000000), risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(1000, 0)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(1000, 1000)] = {ocean_dist = math.sqrt(2000000), risky_dist = 0},
                     },
                     area_key = nil,
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1000)] = {
+                [t.pf:_getNodeKey(0, 1000)] = {
                     x = 0,
                     z = 1000,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 1000, risky_dist = 0},
-                        [pf:_getNodeKey(1000, 0)] = {ocean_dist = math.sqrt(2000000), risky_dist = 0},
-                        [pf:_getNodeKey(1000, 1000)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(1000, 0)] = {ocean_dist = math.sqrt(2000000), risky_dist = 0},
+                        [t.pf:_getNodeKey(1000, 1000)] = {ocean_dist = 1000, risky_dist = 0},
                     },
                     area_key = nil,
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(1000, 0)] = {
+                [t.pf:_getNodeKey(1000, 0)] = {
                     x = 1000,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 1000, risky_dist = 0},
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = math.sqrt(2000000), risky_dist = 0},
-                        [pf:_getNodeKey(1000, 1000)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = math.sqrt(2000000), risky_dist = 0},
+                        [t.pf:_getNodeKey(1000, 1000)] = {ocean_dist = 1000, risky_dist = 0},
                     },
                     area_key = nil,
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(1000, 1000)] = {
+                [t.pf:_getNodeKey(1000, 1000)] = {
                     x = 1000,
                     z = 1000,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = math.sqrt(2000000), risky_dist = 0},
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = 1000, risky_dist = 0},
-                        [pf:_getNodeKey(1000, 0)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = math.sqrt(2000000), risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(1000, 0)] = {ocean_dist = 1000, risky_dist = 0},
                     },
                     area_key = nil,
                     visited = false,
@@ -512,7 +880,7 @@ function testInitEdge(pf)
         },
         {
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = false,
@@ -522,7 +890,7 @@ function testInitEdge(pf)
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1000)] = {
+                [t.pf:_getNodeKey(0, 1000)] = {
                     x = 0,
                     z = 1000,
                     is_ocean = true,
@@ -532,7 +900,7 @@ function testInitEdge(pf)
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(1000, 0)] = {
+                [t.pf:_getNodeKey(1000, 0)] = {
                     x = 1000,
                     z = 0,
                     is_ocean = true,
@@ -542,7 +910,7 @@ function testInitEdge(pf)
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(1000, 1000)] = {
+                [t.pf:_getNodeKey(1000, 1000)] = {
                     x = 1000,
                     z = 1000,
                     is_ocean = true,
@@ -554,56 +922,56 @@ function testInitEdge(pf)
                 },
             },
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = false,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = 0, risky_dist = 1000},
-                        [pf:_getNodeKey(1000, 0)] = {ocean_dist = 0, risky_dist = 1000},
-                        [pf:_getNodeKey(1000, 1000)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = 0, risky_dist = 1000},
+                        [t.pf:_getNodeKey(1000, 0)] = {ocean_dist = 0, risky_dist = 1000},
+                        [t.pf:_getNodeKey(1000, 1000)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
                     },
                     area_key = nil,
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1000)] = {
+                [t.pf:_getNodeKey(0, 1000)] = {
                     x = 0,
                     z = 1000,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = 1000},
-                        [pf:_getNodeKey(1000, 0)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
-                        [pf:_getNodeKey(1000, 1000)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = 1000},
+                        [t.pf:_getNodeKey(1000, 0)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
+                        [t.pf:_getNodeKey(1000, 1000)] = {ocean_dist = 1000, risky_dist = 0},
                     },
                     area_key = nil,
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(1000, 0)] = {
+                [t.pf:_getNodeKey(1000, 0)] = {
                     x = 1000,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = 1000},
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
-                        [pf:_getNodeKey(1000, 1000)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = 1000},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
+                        [t.pf:_getNodeKey(1000, 1000)] = {ocean_dist = 1000, risky_dist = 0},
                     },
                     area_key = nil,
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(1000, 1000)] = {
+                [t.pf:_getNodeKey(1000, 1000)] = {
                     x = 1000,
                     z = 1000,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = 1000, risky_dist = 0},
-                        [pf:_getNodeKey(1000, 0)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(1000, 0)] = {ocean_dist = 1000, risky_dist = 0},
                     },
                     area_key = nil,
                     visited = false,
@@ -614,7 +982,7 @@ function testInitEdge(pf)
         },
         {
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
@@ -624,7 +992,7 @@ function testInitEdge(pf)
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1000)] = {
+                [t.pf:_getNodeKey(0, 1000)] = {
                     x = 0,
                     z = 1000,
                     is_ocean = false,
@@ -634,7 +1002,7 @@ function testInitEdge(pf)
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(1000, 0)] = {
+                [t.pf:_getNodeKey(1000, 0)] = {
                     x = 1000,
                     z = 0,
                     is_ocean = true,
@@ -644,7 +1012,7 @@ function testInitEdge(pf)
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(1000, 1000)] = {
+                [t.pf:_getNodeKey(1000, 1000)] = {
                     x = 1000,
                     z = 1000,
                     is_ocean = true,
@@ -656,56 +1024,56 @@ function testInitEdge(pf)
                 },
             },
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = 0, risky_dist = 1000},
-                        [pf:_getNodeKey(1000, 0)] = {ocean_dist = 1000, risky_dist = 0},
-                        [pf:_getNodeKey(1000, 1000)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = 0, risky_dist = 1000},
+                        [t.pf:_getNodeKey(1000, 0)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(1000, 1000)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
                     },
                     area_key = nil,
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1000)] = {
+                [t.pf:_getNodeKey(0, 1000)] = {
                     x = 0,
                     z = 1000,
                     is_ocean = false,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = 1000},
-                        [pf:_getNodeKey(1000, 0)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
-                        [pf:_getNodeKey(1000, 1000)] = {ocean_dist = 0, risky_dist = 1000},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = 1000},
+                        [t.pf:_getNodeKey(1000, 0)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
+                        [t.pf:_getNodeKey(1000, 1000)] = {ocean_dist = 0, risky_dist = 1000},
                     },
                     area_key = nil,
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(1000, 0)] = {
+                [t.pf:_getNodeKey(1000, 0)] = {
                     x = 1000,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 1000, risky_dist = 0},
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
-                        [pf:_getNodeKey(1000, 1000)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
+                        [t.pf:_getNodeKey(1000, 1000)] = {ocean_dist = 1000, risky_dist = 0},
                     },
                     area_key = nil,
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(1000, 1000)] = {
+                [t.pf:_getNodeKey(1000, 1000)] = {
                     x = 1000,
                     z = 1000,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = 0, risky_dist = 1000},
-                        [pf:_getNodeKey(1000, 0)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = 0, risky_dist = 1000},
+                        [t.pf:_getNodeKey(1000, 0)] = {ocean_dist = 1000, risky_dist = 0},
                     },
                     area_key = nil,
                     visited = false,
@@ -716,7 +1084,7 @@ function testInitEdge(pf)
         },
         {
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
@@ -726,7 +1094,7 @@ function testInitEdge(pf)
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1000)] = {
+                [t.pf:_getNodeKey(0, 1000)] = {
                     x = 0,
                     z = 1000,
                     is_ocean = true,
@@ -736,7 +1104,7 @@ function testInitEdge(pf)
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(1000, 0)] = {
+                [t.pf:_getNodeKey(1000, 0)] = {
                     x = 1000,
                     z = 0,
                     is_ocean = false,
@@ -746,7 +1114,7 @@ function testInitEdge(pf)
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(1000, 1000)] = {
+                [t.pf:_getNodeKey(1000, 1000)] = {
                     x = 1000,
                     z = 1000,
                     is_ocean = true,
@@ -758,56 +1126,56 @@ function testInitEdge(pf)
                 },
             },
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = 1000, risky_dist = 0},
-                        [pf:_getNodeKey(1000, 0)] = {ocean_dist = 0, risky_dist = 1000},
-                        [pf:_getNodeKey(1000, 1000)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(1000, 0)] = {ocean_dist = 0, risky_dist = 1000},
+                        [t.pf:_getNodeKey(1000, 1000)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
                     },
                     area_key = nil,
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1000)] = {
+                [t.pf:_getNodeKey(0, 1000)] = {
                     x = 0,
                     z = 1000,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 1000, risky_dist = 0},
-                        [pf:_getNodeKey(1000, 0)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
-                        [pf:_getNodeKey(1000, 1000)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(1000, 0)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
+                        [t.pf:_getNodeKey(1000, 1000)] = {ocean_dist = 1000, risky_dist = 0},
                     },
                     area_key = nil,
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(1000, 0)] = {
+                [t.pf:_getNodeKey(1000, 0)] = {
                     x = 1000,
                     z = 0,
                     is_ocean = false,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = 1000},
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
-                        [pf:_getNodeKey(1000, 1000)] = {ocean_dist = 0, risky_dist = 1000},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = 1000},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
+                        [t.pf:_getNodeKey(1000, 1000)] = {ocean_dist = 0, risky_dist = 1000},
                     },
                     area_key = nil,
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(1000, 1000)] = {
+                [t.pf:_getNodeKey(1000, 1000)] = {
                     x = 1000,
                     z = 1000,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = 1000, risky_dist = 0},
-                        [pf:_getNodeKey(1000, 0)] = {ocean_dist = 0, risky_dist = 1000},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(1000, 0)] = {ocean_dist = 0, risky_dist = 1000},
                     },
                     area_key = nil,
                     visited = false,
@@ -818,7 +1186,7 @@ function testInitEdge(pf)
         },
         {
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
@@ -828,7 +1196,7 @@ function testInitEdge(pf)
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1000)] = {
+                [t.pf:_getNodeKey(0, 1000)] = {
                     x = 0,
                     z = 1000,
                     is_ocean = true,
@@ -838,7 +1206,7 @@ function testInitEdge(pf)
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(1000, 0)] = {
+                [t.pf:_getNodeKey(1000, 0)] = {
                     x = 1000,
                     z = 0,
                     is_ocean = true,
@@ -848,7 +1216,7 @@ function testInitEdge(pf)
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(1000, 1000)] = {
+                [t.pf:_getNodeKey(1000, 1000)] = {
                     x = 1000,
                     z = 1000,
                     is_ocean = false,
@@ -860,56 +1228,56 @@ function testInitEdge(pf)
                 },
             },
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = 1000, risky_dist = 0},
-                        [pf:_getNodeKey(1000, 0)] = {ocean_dist = 1000, risky_dist = 0},
-                        [pf:_getNodeKey(1000, 1000)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(1000, 0)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(1000, 1000)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
                     },
                     area_key = nil,
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1000)] = {
+                [t.pf:_getNodeKey(0, 1000)] = {
                     x = 0,
                     z = 1000,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 1000, risky_dist = 0},
-                        [pf:_getNodeKey(1000, 0)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
-                        [pf:_getNodeKey(1000, 1000)] = {ocean_dist = 0, risky_dist = 1000},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(1000, 0)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
+                        [t.pf:_getNodeKey(1000, 1000)] = {ocean_dist = 0, risky_dist = 1000},
                     },
                     area_key = nil,
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(1000, 0)] = {
+                [t.pf:_getNodeKey(1000, 0)] = {
                     x = 1000,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 1000, risky_dist = 0},
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
-                        [pf:_getNodeKey(1000, 1000)] = {ocean_dist = 0, risky_dist = 1000},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
+                        [t.pf:_getNodeKey(1000, 1000)] = {ocean_dist = 0, risky_dist = 1000},
                     },
                     area_key = nil,
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(1000, 1000)] = {
+                [t.pf:_getNodeKey(1000, 1000)] = {
                     x = 1000,
                     z = 1000,
                     is_ocean = false,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = 0, risky_dist = 1000},
-                        [pf:_getNodeKey(1000, 0)] = {ocean_dist = 0, risky_dist = 1000},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = math.sqrt(2000000)},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = 0, risky_dist = 1000},
+                        [t.pf:_getNodeKey(1000, 0)] = {ocean_dist = 0, risky_dist = 1000},
                     },
                     area_key = nil,
                     visited = false,
@@ -921,15 +1289,15 @@ function testInitEdge(pf)
     }
 
     for case_idx, case in ipairs(case_tbl) do
-        pf._node_tbl = deepCopy(case.input_node_tbl)
-        pf:_initEdge()
-        if not deepEqual(case.expected_node_tbl, pf._node_tbl) then
+        t.pf._node_tbl = deepCopy(case.input_node_tbl)
+        t.pf:_initEdge()
+        if not deepEqual(case.expected_node_tbl, t.pf._node_tbl) then
             error(string.format('case #%d: wrong node_tbl', case_idx))
         end
     end
 end
 
-function testInitArea(pf)
+function testInitArea(t)
     local case_tbl = {
         {
             input_world_x1 = 0,
@@ -937,25 +1305,25 @@ function testInitArea(pf)
             input_world_x2 = 0,
             input_world_z2 = 0,
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(0, 1),
+                    area_key = t.pf:_getNodeKey(0, 1),
                     visited = true,
                     cost = {ocean_dist = 0, risky_dist = 0},
-                    prev_key = pf:_getNodeKey(0, 1),
+                    prev_key = t.pf:_getNodeKey(0, 1),
                 },
             },
             expected_area_tbl = {},
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
@@ -968,7 +1336,7 @@ function testInitArea(pf)
             input_world_x2 = 0,
             input_world_z2 = 0,
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = false,
@@ -981,7 +1349,7 @@ function testInitArea(pf)
             },
             expected_area_tbl = {},
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = false,
@@ -994,12 +1362,12 @@ function testInitArea(pf)
             },
         },
         {
-            input_world_x1 = -1000,
-            input_world_z1 = -1000,
-            input_world_x2 = 1000,
-            input_world_z2 = 1000,
+            input_world_x1 = 0,
+            input_world_z1 = 0,
+            input_world_x2 = 0,
+            input_world_z2 = 0,
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
@@ -1012,12 +1380,12 @@ function testInitArea(pf)
             },
             expected_area_tbl = {},
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
@@ -1025,12 +1393,12 @@ function testInitArea(pf)
             },
         },
         {
-            input_world_x1 = -1000,
-            input_world_z1 = -2000,
-            input_world_x2 = 1000,
-            input_world_z2 = 2000,
+            input_world_x1 = 0,
+            input_world_z1 = 0,
+            input_world_x2 = 0,
+            input_world_z2 = 0,
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(-1000, 0)] = {
                     x = -1000,
                     z = 0,
                     is_ocean = true,
@@ -1043,12 +1411,12 @@ function testInitArea(pf)
             },
             expected_area_tbl = {},
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(-1000, 0)] = {
                     x = -1000,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(-1000, -2000),
+                    area_key = t.pf:_getNodeKey(0/0, 0/0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
@@ -1056,14 +1424,14 @@ function testInitArea(pf)
             },
         },
         {
-            input_world_x1 = -1000,
-            input_world_z1 = -2000,
-            input_world_x2 = 1000,
-            input_world_z2 = 2000,
+            input_world_x1 = 0,
+            input_world_z1 = 0,
+            input_world_x2 = 0,
+            input_world_z2 = 0,
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, -1000)] = {
                     x = 0,
-                    z = -2000,
+                    z = -1000,
                     is_ocean = true,
                     edge_tbl = {},
                     area_key = nil,
@@ -1074,12 +1442,12 @@ function testInitArea(pf)
             },
             expected_area_tbl = {},
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, -1000)] = {
                     x = 0,
-                    z = -2000,
+                    z = -1000,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(-1000, -2000),
+                    area_key = t.pf:_getNodeKey(0/0, 0/0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
@@ -1087,12 +1455,12 @@ function testInitArea(pf)
             },
         },
         {
-            input_world_x1 = -1000,
-            input_world_z1 = -2000,
-            input_world_x2 = 1000,
-            input_world_z2 = 2000,
+            input_world_x1 = 0,
+            input_world_z1 = 0,
+            input_world_x2 = 0,
+            input_world_z2 = 0,
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(1000, 0)] = {
                     x = 1000,
                     z = 0,
                     is_ocean = true,
@@ -1105,12 +1473,12 @@ function testInitArea(pf)
             },
             expected_area_tbl = {},
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(1000, 0)] = {
                     x = 1000,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(-1000, -2000),
+                    area_key = t.pf:_getNodeKey(0/0, 0/0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
@@ -1118,14 +1486,14 @@ function testInitArea(pf)
             },
         },
         {
-            input_world_x1 = -1000,
-            input_world_z1 = -2000,
-            input_world_x2 = 1000,
-            input_world_z2 = 2000,
+            input_world_x1 = 0,
+            input_world_z1 = 0,
+            input_world_x2 = 0,
+            input_world_z2 = 0,
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 1000)] = {
                     x = 0,
-                    z = 2000,
+                    z = 1000,
                     is_ocean = true,
                     edge_tbl = {},
                     area_key = nil,
@@ -1136,12 +1504,12 @@ function testInitArea(pf)
             },
             expected_area_tbl = {},
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 1000)] = {
                     x = 0,
-                    z = 2000,
+                    z = 1000,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(-1000, -2000),
+                    area_key = t.pf:_getNodeKey(0/0, 0/0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
@@ -1154,37 +1522,37 @@ function testInitArea(pf)
             input_world_x2 = 2000,
             input_world_z2 = 2000,
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, -1000)] = {ocean_dist = 0, risky_dist = 1000},
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, -1000)] = {ocean_dist = 0, risky_dist = 1000},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = 1000, risky_dist = 0},
                     },
                     area_key = nil,
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, -1000)] = {
+                [t.pf:_getNodeKey(0, -1000)] = {
                     x = 0,
                     z = -1000,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = 1000},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = 1000},
                     },
                     area_key = nil,
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1000)] = {
+                [t.pf:_getNodeKey(0, 1000)] = {
                     x = 0,
                     z = 1000,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 1000, risky_dist = 0},
                     },
                     area_key = nil,
                     visited = false,
@@ -1193,40 +1561,40 @@ function testInitArea(pf)
                 },
             },
             expected_area_tbl = {
-                [pf:_getNodeKey(0, 0)] = {pf:_getNodeKey(0, 0), pf:_getNodeKey(0, 1000)},
+                [t.pf:_getNodeKey(0, 0)] = {t.pf:_getNodeKey(0, 0), t.pf:_getNodeKey(0, 1000)},
             },
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, -1000)] = {ocean_dist = 0, risky_dist = 1000},
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, -1000)] = {ocean_dist = 0, risky_dist = 1000},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = 1000, risky_dist = 0},
                     },
                     area_key = nil,
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, -1000)] = {
+                [t.pf:_getNodeKey(0, -1000)] = {
                     x = 0,
                     z = -1000,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = 1000},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = 1000},
                     },
-                    area_key = pf:_getNodeKey(0, -1000),
+                    area_key = t.pf:_getNodeKey(0, -1000),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1000)] = {
+                [t.pf:_getNodeKey(0, 1000)] = {
                     x = 0,
                     z = 1000,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 1000, risky_dist = 0},
                     },
                     area_key = nil,
                     visited = false,
@@ -1238,27 +1606,27 @@ function testInitArea(pf)
     }
 
     for case_idx, case in ipairs(case_tbl) do
-        pf._world_x1 = case.input_world_x1
-        pf._world_z1 = case.input_world_z1
-        pf._world_x2 = case.input_world_x2
-        pf._world_z2 = case.input_world_z2
-        pf._node_tbl = deepCopy(case.input_node_tbl)
-        pf:_initArea()
+        t.pf._world_x1 = case.input_world_x1
+        t.pf._world_z1 = case.input_world_z1
+        t.pf._world_x2 = case.input_world_x2
+        t.pf._world_z2 = case.input_world_z2
+        t.pf._node_tbl = deepCopy(case.input_node_tbl)
+        t.pf:_initArea()
 
         local expected_node_tbl = deepCopy(case.expected_node_tbl)
         for area_key, node_key_list in pairs(case.expected_area_tbl) do
             for _, node_key in pairs(node_key_list) do
-                expected_node_tbl[node_key].area_key = pf._node_tbl[area_key].area_key
+                expected_node_tbl[node_key].area_key = t.pf._node_tbl[area_key].area_key
             end
         end
 
-        if not deepEqual(expected_node_tbl, pf._node_tbl) then
+        if not deepEqual(expected_node_tbl, t.pf._node_tbl) then
             error(string.format('case #%d: wrong node_tbl', case_idx))
         end
     end
 end
 
-function testSetNode(pf)
+function testSetNode(t)
     local case_tbl = {
         {
             input_world_x1 = -1000,
@@ -1266,12 +1634,12 @@ function testSetNode(pf)
             input_world_x2 = 1000,
             input_world_z2 = 1000,
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
@@ -1280,19 +1648,19 @@ function testSetNode(pf)
             input_x = 0,
             input_z = 0,
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
             },
             expected_temp_node_tbl = {},
-            expected_node_key = pf:_getNodeKey(0, 0),
+            expected_node_key = t.pf:_getNodeKey(0, 0),
         },
         {
             input_world_x1 = -2000,
@@ -1300,26 +1668,26 @@ function testSetNode(pf)
             input_world_x2 = 2000,
             input_world_z2 = 2000,
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = 1000, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1000)] = {
+                [t.pf:_getNodeKey(0, 1000)] = {
                     x = 0,
                     z = 1000,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = 1000, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
@@ -1328,62 +1696,62 @@ function testSetNode(pf)
             input_x = 0,
             input_z = 1,
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = 1000, risky_dist = 0},
-                        [pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1000)] = {
+                [t.pf:_getNodeKey(0, 1000)] = {
                     x = 0,
                     z = 1000,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = 1000, risky_dist = 0},
-                        [pf:_getNodeKey(0, 1)] = {ocean_dist = 999, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1)] = {ocean_dist = 999, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1)] = {
+                [t.pf:_getNodeKey(0, 1)] = {
                     x = 0,
                     z = 1,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = 999, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = 999, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
             },
             expected_temp_node_tbl = {
-                [pf:_getNodeKey(0, 1)] = {
+                [t.pf:_getNodeKey(0, 1)] = {
                     x = 0,
                     z = 1,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = 999, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = 999, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
             },
-            expected_node_key = pf:_getNodeKey(0, 1),
+            expected_node_key = t.pf:_getNodeKey(0, 1),
         },
         {
             input_world_x1 = -2000,
@@ -1391,26 +1759,26 @@ function testSetNode(pf)
             input_world_x2 = 2000,
             input_world_z2 = 2000,
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = false,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = 0, risky_dist = 1000},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = 0, risky_dist = 1000},
                     },
                     area_key = nil,
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1000)] = {
+                [t.pf:_getNodeKey(0, 1000)] = {
                     x = 0,
                     z = 1000,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = 1000},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = 1000},
                     },
-                    area_key = pf:_getNodeKey(0, 1000),
+                    area_key = t.pf:_getNodeKey(0, 1000),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
@@ -1419,39 +1787,39 @@ function testSetNode(pf)
             input_x = 0,
             input_z = 1,
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = false,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = 0, risky_dist = 1000},
-                        [pf:_getNodeKey(0, 1)] = {ocean_dist = 0, risky_dist = 1},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = 0, risky_dist = 1000},
+                        [t.pf:_getNodeKey(0, 1)] = {ocean_dist = 0, risky_dist = 1},
                     },
                     area_key = nil,
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1000)] = {
+                [t.pf:_getNodeKey(0, 1000)] = {
                     x = 0,
                     z = 1000,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = 1000},
-                        [pf:_getNodeKey(0, 1)] = {ocean_dist = 0, risky_dist = 999},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = 1000},
+                        [t.pf:_getNodeKey(0, 1)] = {ocean_dist = 0, risky_dist = 999},
                     },
-                    area_key = pf:_getNodeKey(0, 1000),
+                    area_key = t.pf:_getNodeKey(0, 1000),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1)] = {
+                [t.pf:_getNodeKey(0, 1)] = {
                     x = 0,
                     z = 1,
                     is_ocean = false,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = 1},
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = 0, risky_dist = 999},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = 1},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = 0, risky_dist = 999},
                     },
                     area_key = nil,
                     visited = false,
@@ -1460,13 +1828,13 @@ function testSetNode(pf)
                 },
             },
             expected_temp_node_tbl = {
-                [pf:_getNodeKey(0, 1)] = {
+                [t.pf:_getNodeKey(0, 1)] = {
                     x = 0,
                     z = 1,
                     is_ocean = false,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = 1},
-                        [pf:_getNodeKey(0, 1000)] = {ocean_dist = 0, risky_dist = 999},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = 1},
+                        [t.pf:_getNodeKey(0, 1000)] = {ocean_dist = 0, risky_dist = 999},
                     },
                     area_key = nil,
                     visited = false,
@@ -1474,30 +1842,30 @@ function testSetNode(pf)
                     prev_key = nil,
                 },
             },
-            expected_node_key = pf:_getNodeKey(0, 1),
+            expected_node_key = t.pf:_getNodeKey(0, 1),
         },
         {
-            input_world_x1 = -1000,
-            input_world_z1 = -1000,
-            input_world_x2 = 1000,
-            input_world_z2 = 1000,
+            input_world_x1 = 0,
+            input_world_z1 = 0,
+            input_world_x2 = 0,
+            input_world_z2 = 0,
             input_node_tbl = {
-                [pf:_getNodeKey(0, -1000)] = {
+                [t.pf:_getNodeKey(0, -1000)] = {
                     x = 0,
                     z = -1000,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(-1000, -1000),
+                    area_key = t.pf:_getNodeKey(0/0, 0/0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
@@ -1506,64 +1874,64 @@ function testSetNode(pf)
             input_x = 0,
             input_z = -2000,
             expected_node_tbl = {
-                [pf:_getNodeKey(0, -1000)] = {
+                [t.pf:_getNodeKey(0, -1000)] = {
                     x = 0,
                     z = -1000,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, -2000)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, -2000)] = {ocean_dist = 1000, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(-1000, -1000),
+                    area_key = t.pf:_getNodeKey(0/0, 0/0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, -2000)] = {
+                [t.pf:_getNodeKey(0, -2000)] = {
                     x = 0,
                     z = -2000,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, -1000)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, -1000)] = {ocean_dist = 1000, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(-1000, -1000),
+                    area_key = t.pf:_getNodeKey(0/0, 0/0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
             },
             expected_temp_node_tbl = {
-                [pf:_getNodeKey(0, -2000)] = {
+                [t.pf:_getNodeKey(0, -2000)] = {
                     x = 0,
                     z = -2000,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, -1000)] = {ocean_dist = 1000, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, -1000)] = {ocean_dist = 1000, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(-1000, -1000),
+                    area_key = t.pf:_getNodeKey(0/0, 0/0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
             },
-            expected_node_key = pf:_getNodeKey(0, -2000),
+            expected_node_key = t.pf:_getNodeKey(0, -2000),
         },
         {
-            input_world_x1 = -1000,
-            input_world_z1 = -1000,
-            input_world_x2 = 1000,
-            input_world_z2 = 1000,
+            input_world_x1 = 0,
+            input_world_z1 = 0,
+            input_world_x2 = 0,
+            input_world_z2 = 0,
             input_node_tbl = {
-                [pf:_getNodeKey(0, -1000)] = {
+                [t.pf:_getNodeKey(0, -1000)] = {
                     x = 0,
                     z = -1000,
                     is_ocean = false,
@@ -1573,12 +1941,12 @@ function testSetNode(pf)
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
@@ -1587,74 +1955,74 @@ function testSetNode(pf)
             input_x = 0,
             input_z = -2000,
             expected_node_tbl = {
-                [pf:_getNodeKey(0, -1000)] = {
+                [t.pf:_getNodeKey(0, -1000)] = {
                     x = 0,
                     z = -1000,
                     is_ocean = false,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, -2000)] = {ocean_dist = 0, risky_dist = 1000},
+                        [t.pf:_getNodeKey(0, -2000)] = {ocean_dist = 0, risky_dist = 1000},
                     },
                     area_key = nil,
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, -2000)] = {
+                [t.pf:_getNodeKey(0, -2000)] = {
                     x = 0,
                     z = -2000,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, -1000)] = {ocean_dist = 0, risky_dist = 1000},
+                        [t.pf:_getNodeKey(0, -1000)] = {ocean_dist = 0, risky_dist = 1000},
                     },
-                    area_key = pf:_getNodeKey(-1000, -1000),
+                    area_key = t.pf:_getNodeKey(0/0, 0/0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
             },
             expected_temp_node_tbl = {
-                [pf:_getNodeKey(0, -2000)] = {
+                [t.pf:_getNodeKey(0, -2000)] = {
                     x = 0,
                     z = -2000,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, -1000)] = {ocean_dist = 0, risky_dist = 1000},
+                        [t.pf:_getNodeKey(0, -1000)] = {ocean_dist = 0, risky_dist = 1000},
                     },
-                    area_key = pf:_getNodeKey(-1000, -1000),
+                    area_key = t.pf:_getNodeKey(0/0, 0/0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
             },
-            expected_node_key = pf:_getNodeKey(0, -2000),
+            expected_node_key = t.pf:_getNodeKey(0, -2000),
         },
         {
-            input_world_x1 = -1000,
-            input_world_z1 = -1000,
-            input_world_x2 = 1000,
-            input_world_z2 = 1000,
+            input_world_x1 = 0,
+            input_world_z1 = 0,
+            input_world_x2 = 0,
+            input_world_z2 = 0,
             input_node_tbl = {
-                [pf:_getNodeKey(0, -2000)] = {
+                [t.pf:_getNodeKey(0, -2000)] = {
                     x = 0,
                     z = -2000,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(-1000, -1000),
+                    area_key = t.pf:_getNodeKey(0/0, 0/0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, -1000)] = {
+                [t.pf:_getNodeKey(0, -1000)] = {
                     x = 0,
                     z = -1000,
                     is_ocean = false,
@@ -1668,37 +2036,37 @@ function testSetNode(pf)
             input_x = 0,
             input_z = -1001,
             expected_node_tbl = {
-                [pf:_getNodeKey(0, -2000)] = {
+                [t.pf:_getNodeKey(0, -2000)] = {
                     x = 0,
                     z = -2000,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, -1001)] = {ocean_dist = 0, risky_dist = 999},
+                        [t.pf:_getNodeKey(0, -1001)] = {ocean_dist = 0, risky_dist = 999},
                     },
-                    area_key = pf:_getNodeKey(-1000, -1000),
+                    area_key = t.pf:_getNodeKey(0/0, 0/0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, -1000)] = {
+                [t.pf:_getNodeKey(0, -1000)] = {
                     x = 0,
                     z = -1000,
                     is_ocean = false,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, -1001)] = {ocean_dist = 0, risky_dist = 1},
+                        [t.pf:_getNodeKey(0, -1001)] = {ocean_dist = 0, risky_dist = 1},
                     },
                     area_key = nil,
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, -1001)] = {
+                [t.pf:_getNodeKey(0, -1001)] = {
                     x = 0,
                     z = -1001,
                     is_ocean = false,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, -2000)] = {ocean_dist = 0, risky_dist = 999},
-                        [pf:_getNodeKey(0, -1000)] = {ocean_dist = 0, risky_dist = 1},
+                        [t.pf:_getNodeKey(0, -2000)] = {ocean_dist = 0, risky_dist = 999},
+                        [t.pf:_getNodeKey(0, -1000)] = {ocean_dist = 0, risky_dist = 1},
                     },
                     area_key = nil,
                     visited = false,
@@ -1707,13 +2075,13 @@ function testSetNode(pf)
                 },
             },
             expected_temp_node_tbl = {
-                [pf:_getNodeKey(0, -1001)] = {
+                [t.pf:_getNodeKey(0, -1001)] = {
                     x = 0,
                     z = -1001,
                     is_ocean = false,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, -2000)] = {ocean_dist = 0, risky_dist = 999},
-                        [pf:_getNodeKey(0, -1000)] = {ocean_dist = 0, risky_dist = 1},
+                        [t.pf:_getNodeKey(0, -2000)] = {ocean_dist = 0, risky_dist = 999},
+                        [t.pf:_getNodeKey(0, -1000)] = {ocean_dist = 0, risky_dist = 1},
                     },
                     area_key = nil,
                     visited = false,
@@ -1721,22 +2089,22 @@ function testSetNode(pf)
                     prev_key = nil,
                 },
             },
-            expected_node_key = pf:_getNodeKey(0, -1001),
+            expected_node_key = t.pf:_getNodeKey(0, -1001),
         },
     }
 
     for case_idx, case in ipairs(case_tbl) do
-        pf._world_x1 = case.input_world_x1
-        pf._world_z1 = case.input_world_z1
-        pf._world_x2 = case.input_world_x2
-        pf._world_z2 = case.input_world_z2
-        pf._node_tbl = deepCopy(case.input_node_tbl)
-        pf._temp_node_tbl = {}
-        local actual_node_key = pf:_setNode(case.input_x, case.input_z)
-        if not deepEqual(case.expected_node_tbl, pf._node_tbl) then
+        t.pf._world_x1 = case.input_world_x1
+        t.pf._world_z1 = case.input_world_z1
+        t.pf._world_x2 = case.input_world_x2
+        t.pf._world_z2 = case.input_world_z2
+        t.pf._node_tbl = deepCopy(case.input_node_tbl)
+        t.pf._temp_node_tbl = {}
+        local actual_node_key = t.pf:_setNode(case.input_x, case.input_z)
+        if not deepEqual(case.expected_node_tbl, t.pf._node_tbl) then
             error(string.format('case #%d: wrong node_tbl', case_idx))
         end
-        if not deepEqual(case.expected_temp_node_tbl, pf._temp_node_tbl) then
+        if not deepEqual(case.expected_temp_node_tbl, t.pf._temp_node_tbl) then
             error(string.format('case #%d: wrong temp_node_tbl', case_idx))
         end
         if actual_node_key ~= case.expected_node_key then
@@ -1745,30 +2113,30 @@ function testSetNode(pf)
     end
 end
 
-function testCalcPath(pf)
+function testCalcPath(t)
     local case_tbl = {
         {
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 0, risky_dist = 0},
-                    prev_key = pf:_getNodeKey(0, 1000),
+                    prev_key = t.pf:_getNodeKey(0, 1000),
                 },
             },
             input_start_node_key = nil,
             input_end_node_key = nil,
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
@@ -1777,46 +2145,46 @@ function testCalcPath(pf)
         },
         {
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1)] = {
+                [t.pf:_getNodeKey(0, 1)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
             },
-            input_start_node_key = pf:_getNodeKey(0, 0),
+            input_start_node_key = t.pf:_getNodeKey(0, 0),
             input_end_node_key = nil,
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 0, risky_dist = 0},
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1)] = {
+                [t.pf:_getNodeKey(0, 1)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {},
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
@@ -1825,54 +2193,54 @@ function testCalcPath(pf)
         },
         {
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1)] = {
+                [t.pf:_getNodeKey(0, 1)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
             },
-            input_start_node_key = pf:_getNodeKey(0, 0),
-            input_end_node_key = pf:_getNodeKey(0, 0),
+            input_start_node_key = t.pf:_getNodeKey(0, 0),
+            input_end_node_key = t.pf:_getNodeKey(0, 0),
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 0, risky_dist = 0},
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1)] = {
+                [t.pf:_getNodeKey(0, 1)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
@@ -1881,509 +2249,509 @@ function testCalcPath(pf)
         },
         {
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
-                        [pf:_getNodeKey(0, 2)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 2)] = {ocean_dist = 1, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1)] = {
+                [t.pf:_getNodeKey(0, 1)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
-                        [pf:_getNodeKey(0, 2)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 2)] = {ocean_dist = 1, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 2)] = {
+                [t.pf:_getNodeKey(0, 2)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
-                        [pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
-                        [pf:_getNodeKey(0, 3)] = {ocean_dist = 2, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 3)] = {ocean_dist = 2, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 3)] = {
+                [t.pf:_getNodeKey(0, 3)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 2)] = {ocean_dist = 2, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 2)] = {ocean_dist = 2, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
             },
-            input_start_node_key = pf:_getNodeKey(0, 0),
-            input_end_node_key = pf:_getNodeKey(0, 3),
+            input_start_node_key = t.pf:_getNodeKey(0, 0),
+            input_end_node_key = t.pf:_getNodeKey(0, 3),
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
-                        [pf:_getNodeKey(0, 2)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 2)] = {ocean_dist = 1, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 0, risky_dist = 0},
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1)] = {
+                [t.pf:_getNodeKey(0, 1)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
-                        [pf:_getNodeKey(0, 2)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 2)] = {ocean_dist = 1, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 1, risky_dist = 0},
-                    prev_key = pf:_getNodeKey(0, 0),
+                    prev_key = t.pf:_getNodeKey(0, 0),
                 },
-                [pf:_getNodeKey(0, 2)] = {
+                [t.pf:_getNodeKey(0, 2)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
-                        [pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
-                        [pf:_getNodeKey(0, 3)] = {ocean_dist = 2, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 3)] = {ocean_dist = 2, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 1, risky_dist = 0},
-                    prev_key = pf:_getNodeKey(0, 0),
+                    prev_key = t.pf:_getNodeKey(0, 0),
                 },
-                [pf:_getNodeKey(0, 3)] = {
+                [t.pf:_getNodeKey(0, 3)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 2)] = {ocean_dist = 2, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 2)] = {ocean_dist = 2, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 3, risky_dist = 0},
-                    prev_key = pf:_getNodeKey(0, 2),
+                    prev_key = t.pf:_getNodeKey(0, 2),
                 },
             },
         },
         {
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
-                        [pf:_getNodeKey(0, 2)] = {ocean_dist = 3, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 2)] = {ocean_dist = 3, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1)] = {
+                [t.pf:_getNodeKey(0, 1)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
-                        [pf:_getNodeKey(0, 2)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 2)] = {ocean_dist = 1, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 2)] = {
+                [t.pf:_getNodeKey(0, 2)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 3, risky_dist = 0},
-                        [pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
-                        [pf:_getNodeKey(0, 3)] = {ocean_dist = 2, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 3, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 3)] = {ocean_dist = 2, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 3)] = {
+                [t.pf:_getNodeKey(0, 3)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 2)] = {ocean_dist = 2, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 2)] = {ocean_dist = 2, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
             },
-            input_start_node_key = pf:_getNodeKey(0, 0),
-            input_end_node_key = pf:_getNodeKey(0, 3),
+            input_start_node_key = t.pf:_getNodeKey(0, 0),
+            input_end_node_key = t.pf:_getNodeKey(0, 3),
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
-                        [pf:_getNodeKey(0, 2)] = {ocean_dist = 3, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 2)] = {ocean_dist = 3, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 0, risky_dist = 0},
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1)] = {
+                [t.pf:_getNodeKey(0, 1)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
-                        [pf:_getNodeKey(0, 2)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 2)] = {ocean_dist = 1, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 1, risky_dist = 0},
-                    prev_key = pf:_getNodeKey(0, 0),
+                    prev_key = t.pf:_getNodeKey(0, 0),
                 },
-                [pf:_getNodeKey(0, 2)] = {
+                [t.pf:_getNodeKey(0, 2)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 3, risky_dist = 0},
-                        [pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
-                        [pf:_getNodeKey(0, 3)] = {ocean_dist = 2, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 3, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 3)] = {ocean_dist = 2, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 2, risky_dist = 0},
-                    prev_key = pf:_getNodeKey(0, 1),
+                    prev_key = t.pf:_getNodeKey(0, 1),
                 },
-                [pf:_getNodeKey(0, 3)] = {
+                [t.pf:_getNodeKey(0, 3)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 2)] = {ocean_dist = 2, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 2)] = {ocean_dist = 2, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 4, risky_dist = 0},
-                    prev_key = pf:_getNodeKey(0, 2),
+                    prev_key = t.pf:_getNodeKey(0, 2),
                 },
             },
         },
         {
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 1)] = {ocean_dist = 0, risky_dist = 1},
-                        [pf:_getNodeKey(0, 2)] = {ocean_dist = 3, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1)] = {ocean_dist = 0, risky_dist = 1},
+                        [t.pf:_getNodeKey(0, 2)] = {ocean_dist = 3, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1)] = {
+                [t.pf:_getNodeKey(0, 1)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = 1},
-                        [pf:_getNodeKey(0, 2)] = {ocean_dist = 0, risky_dist = 1},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = 1},
+                        [t.pf:_getNodeKey(0, 2)] = {ocean_dist = 0, risky_dist = 1},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 2)] = {
+                [t.pf:_getNodeKey(0, 2)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 3, risky_dist = 0},
-                        [pf:_getNodeKey(0, 1)] = {ocean_dist = 0, risky_dist = 1},
-                        [pf:_getNodeKey(0, 3)] = {ocean_dist = 0, risky_dist = 3},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 3, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1)] = {ocean_dist = 0, risky_dist = 1},
+                        [t.pf:_getNodeKey(0, 3)] = {ocean_dist = 0, risky_dist = 3},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 3)] = {
+                [t.pf:_getNodeKey(0, 3)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 2)] = {ocean_dist = 0, risky_dist = 3},
+                        [t.pf:_getNodeKey(0, 2)] = {ocean_dist = 0, risky_dist = 3},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
             },
-            input_start_node_key = pf:_getNodeKey(0, 0),
-            input_end_node_key = pf:_getNodeKey(0, 3),
+            input_start_node_key = t.pf:_getNodeKey(0, 0),
+            input_end_node_key = t.pf:_getNodeKey(0, 3),
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 1)] = {ocean_dist = 0, risky_dist = 1},
-                        [pf:_getNodeKey(0, 2)] = {ocean_dist = 3, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1)] = {ocean_dist = 0, risky_dist = 1},
+                        [t.pf:_getNodeKey(0, 2)] = {ocean_dist = 3, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 0, risky_dist = 0},
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1)] = {
+                [t.pf:_getNodeKey(0, 1)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = 1},
-                        [pf:_getNodeKey(0, 2)] = {ocean_dist = 0, risky_dist = 1},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = 1},
+                        [t.pf:_getNodeKey(0, 2)] = {ocean_dist = 0, risky_dist = 1},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 0, risky_dist = 1},
-                    prev_key = pf:_getNodeKey(0, 0),
+                    prev_key = t.pf:_getNodeKey(0, 0),
                 },
-                [pf:_getNodeKey(0, 2)] = {
+                [t.pf:_getNodeKey(0, 2)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 3, risky_dist = 0},
-                        [pf:_getNodeKey(0, 1)] = {ocean_dist = 0, risky_dist = 1},
-                        [pf:_getNodeKey(0, 3)] = {ocean_dist = 0, risky_dist = 3},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 3, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1)] = {ocean_dist = 0, risky_dist = 1},
+                        [t.pf:_getNodeKey(0, 3)] = {ocean_dist = 0, risky_dist = 3},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 3, risky_dist = 0},
-                    prev_key = pf:_getNodeKey(0, 0),
+                    prev_key = t.pf:_getNodeKey(0, 0),
                 },
-                [pf:_getNodeKey(0, 3)] = {
+                [t.pf:_getNodeKey(0, 3)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 2)] = {ocean_dist = 0, risky_dist = 3},
+                        [t.pf:_getNodeKey(0, 2)] = {ocean_dist = 0, risky_dist = 3},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 3, risky_dist = 3},
-                    prev_key = pf:_getNodeKey(0, 2),
+                    prev_key = t.pf:_getNodeKey(0, 2),
                 },
             },
         },
         {
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
-                        [pf:_getNodeKey(0, 2)] = {ocean_dist = 0, risky_dist = 1},
+                        [t.pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 2)] = {ocean_dist = 0, risky_dist = 1},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1)] = {
+                [t.pf:_getNodeKey(0, 1)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
-                        [pf:_getNodeKey(0, 2)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 2)] = {ocean_dist = 1, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 2)] = {
+                [t.pf:_getNodeKey(0, 2)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = 1},
-                        [pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
-                        [pf:_getNodeKey(0, 3)] = {ocean_dist = 0, risky_dist = 1},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = 1},
+                        [t.pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 3)] = {ocean_dist = 0, risky_dist = 1},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 3)] = {
+                [t.pf:_getNodeKey(0, 3)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 2)] = {ocean_dist = 0, risky_dist = 1},
+                        [t.pf:_getNodeKey(0, 2)] = {ocean_dist = 0, risky_dist = 1},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
             },
-            input_start_node_key = pf:_getNodeKey(0, 0),
-            input_end_node_key = pf:_getNodeKey(0, 3),
+            input_start_node_key = t.pf:_getNodeKey(0, 0),
+            input_end_node_key = t.pf:_getNodeKey(0, 3),
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
-                        [pf:_getNodeKey(0, 2)] = {ocean_dist = 0, risky_dist = 1},
+                        [t.pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 2)] = {ocean_dist = 0, risky_dist = 1},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 0, risky_dist = 0},
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1)] = {
+                [t.pf:_getNodeKey(0, 1)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
-                        [pf:_getNodeKey(0, 2)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 2)] = {ocean_dist = 1, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 1, risky_dist = 0},
-                    prev_key = pf:_getNodeKey(0, 0),
+                    prev_key = t.pf:_getNodeKey(0, 0),
                 },
-                [pf:_getNodeKey(0, 2)] = {
+                [t.pf:_getNodeKey(0, 2)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = 1},
-                        [pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
-                        [pf:_getNodeKey(0, 3)] = {ocean_dist = 0, risky_dist = 1},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 0, risky_dist = 1},
+                        [t.pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 3)] = {ocean_dist = 0, risky_dist = 1},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 2, risky_dist = 0},
-                    prev_key = pf:_getNodeKey(0, 1),
+                    prev_key = t.pf:_getNodeKey(0, 1),
                 },
-                [pf:_getNodeKey(0, 3)] = {
+                [t.pf:_getNodeKey(0, 3)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 2)] = {ocean_dist = 0, risky_dist = 1},
+                        [t.pf:_getNodeKey(0, 2)] = {ocean_dist = 0, risky_dist = 1},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 2, risky_dist = 1},
-                    prev_key = pf:_getNodeKey(0, 2),
+                    prev_key = t.pf:_getNodeKey(0, 2),
                 },
             },
         },
     }
 
     for case_idx, case in ipairs(case_tbl) do
-        pf._node_tbl = deepCopy(case.input_node_tbl)
-        pf._start_node_key = case.input_start_node_key
-        pf._end_node_key = case.input_end_node_key
-        pf:_calcPath()
-        if not deepEqual(case.expected_node_tbl, pf._node_tbl) then
+        t.pf._node_tbl = deepCopy(case.input_node_tbl)
+        t.pf._start_node_key = case.input_start_node_key
+        t.pf._end_node_key = case.input_end_node_key
+        t.pf:_calcPath()
+        if not deepEqual(case.expected_node_tbl, t.pf._node_tbl) then
             error(string.format('case #%d: wrong node_tbl', case_idx))
         end
     end
 end
 
-function testGetPathList(pf)
+function testGetPathList(t)
     local case_tbl = {
         {
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 0, risky_dist = 0},
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1)] = {
+                [t.pf:_getNodeKey(0, 1)] = {
                     x = 0,
                     z = 1,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
-                        [pf:_getNodeKey(0, 2)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 2)] = {ocean_dist = 1, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 1, risky_dist = 0},
-                    prev_key = pf:_getNodeKey(0, 0),
+                    prev_key = t.pf:_getNodeKey(0, 0),
                 },
-                [pf:_getNodeKey(0, 2)] = {
+                [t.pf:_getNodeKey(0, 2)] = {
                     x = 0,
                     z = 2,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 2)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 2)] = {ocean_dist = 1, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 2, risky_dist = 0},
-                    prev_key = pf:_getNodeKey(0, 1),
+                    prev_key = t.pf:_getNodeKey(0, 1),
                 },
             },
-            input_start_node_key = pf:_getNodeKey(0, 0),
-            input_end_node_key = pf:_getNodeKey(0, 2),
+            input_start_node_key = t.pf:_getNodeKey(0, 0),
+            input_end_node_key = t.pf:_getNodeKey(0, 2),
             expected = {
                 {x = 0, z = 1},
                 {x = 0, z = 2},
@@ -2391,46 +2759,46 @@ function testGetPathList(pf)
         },
         {
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 0, risky_dist = 0},
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, 1)] = {
+                [t.pf:_getNodeKey(0, 1)] = {
                     x = 0,
                     z = 1,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
-                        [pf:_getNodeKey(0, 2)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 2)] = {ocean_dist = 1, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 1, risky_dist = 0},
-                    prev_key = pf:_getNodeKey(0, 0),
+                    prev_key = t.pf:_getNodeKey(0, 0),
                 },
-                [pf:_getNodeKey(0, 2)] = {
+                [t.pf:_getNodeKey(0, 2)] = {
                     x = 0,
                     z = 2,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 2)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 2)] = {ocean_dist = 1, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 2, risky_dist = 0},
-                    prev_key = pf:_getNodeKey(0, 1),
+                    prev_key = t.pf:_getNodeKey(0, 1),
                 },
             },
             input_start_node_key = nil,
-            input_end_node_key = pf:_getNodeKey(0, 2),
+            input_end_node_key = t.pf:_getNodeKey(0, 2),
             expected = {
                 {x = 0, z = 0},
                 {x = 0, z = 1},
@@ -2440,98 +2808,98 @@ function testGetPathList(pf)
     }
 
     for case_idx, case in ipairs(case_tbl) do
-        pf._node_tbl = deepCopy(case.input_node_tbl)
-        pf._start_node_key = case.input_start_node_key
-        pf._end_node_key = case.input_end_node_key
-        local actual = pf:_getPathList()
+        t.pf._node_tbl = deepCopy(case.input_node_tbl)
+        t.pf._start_node_key = case.input_start_node_key
+        t.pf._end_node_key = case.input_end_node_key
+        local actual = t.pf:_getPathList()
         if not deepEqual(case.expected, actual) then
             error(string.format('case #%d: wrong path_list', case_idx))
         end
     end
 end
 
-function testReset(pf)
+function testReset(t)
     local case_tbl = {
         {
             input_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, -1)] = {ocean_dist = 1, risky_dist = 0},
-                        [pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, -1)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1)] = {ocean_dist = 1, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 0, risky_dist = 0},
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, -1)] = {
+                [t.pf:_getNodeKey(0, -1)] = {
                     x = 0,
                     z = -1,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
-                        [pf:_getNodeKey(0, 1)] = {ocean_dist = 2, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 1)] = {ocean_dist = 2, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 1, risky_dist = 0},
-                    prev_key = pf:_getNodeKey(0, 0),
+                    prev_key = t.pf:_getNodeKey(0, 0),
                 },
-                [pf:_getNodeKey(0, 1)] = {
+                [t.pf:_getNodeKey(0, 1)] = {
                     x = 0,
                     z = 1,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
-                        [pf:_getNodeKey(0, -1)] = {ocean_dist = 2, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, -1)] = {ocean_dist = 2, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 1, risky_dist = 0},
-                    prev_key = pf:_getNodeKey(0, 0),
+                    prev_key = t.pf:_getNodeKey(0, 0),
                 },
             },
             input_temp_node_tbl = {
-                [pf:_getNodeKey(0, 1)] = {
+                [t.pf:_getNodeKey(0, 1)] = {
                     x = 0,
                     z = 1,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
-                        [pf:_getNodeKey(0, -1)] = {ocean_dist = 2, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, -1)] = {ocean_dist = 2, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = true,
                     cost = {ocean_dist = 1, risky_dist = 0},
-                    prev_key = pf:_getNodeKey(0, 0),
+                    prev_key = t.pf:_getNodeKey(0, 0),
                 },
             },
-            input_start_node_key = pf:_getNodeKey(0, 0),
-            input_end_node_key = pf:_getNodeKey(0, 1),
+            input_start_node_key = t.pf:_getNodeKey(0, 0),
+            input_end_node_key = t.pf:_getNodeKey(0, 1),
             expected_node_tbl = {
-                [pf:_getNodeKey(0, 0)] = {
+                [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
                     z = 0,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, -1)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, -1)] = {ocean_dist = 1, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
                 },
-                [pf:_getNodeKey(0, -1)] = {
+                [t.pf:_getNodeKey(0, -1)] = {
                     x = 0,
                     z = -1,
                     is_ocean = true,
                     edge_tbl = {
-                        [pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
+                        [t.pf:_getNodeKey(0, 0)] = {ocean_dist = 1, risky_dist = 0},
                     },
-                    area_key = pf:_getNodeKey(0, 0),
+                    area_key = t.pf:_getNodeKey(0, 0),
                     visited = false,
                     cost = nil,
                     prev_key = nil,
@@ -2541,31 +2909,31 @@ function testReset(pf)
     }
 
     for case_idx, case in ipairs(case_tbl) do
-        pf._node_tbl = deepCopy(case.input_node_tbl)
-        pf._temp_node_tbl = deepCopy(case.input_temp_node_tbl)
-        pf._start_node_key = case.input_start_node_key
-        pf._end_node_key = case.input_end_node_key
-        pf:_reset()
-        if not deepEqual(case.expected_node_tbl, pf._node_tbl) then
+        t.pf._node_tbl = deepCopy(case.input_node_tbl)
+        t.pf._temp_node_tbl = deepCopy(case.input_temp_node_tbl)
+        t.pf._start_node_key = case.input_start_node_key
+        t.pf._end_node_key = case.input_end_node_key
+        t.pf:_reset()
+        if not deepEqual(case.expected_node_tbl, t.pf._node_tbl) then
             error(string.format('case #%d: wrong node_tbl', case_idx))
         end
-        if not deepEqual({}, pf._temp_node_tbl) then
+        if not deepEqual({}, t.pf._temp_node_tbl) then
             error(string.format('case #%d: wrong temp_node_tbl', case_idx))
         end
-        if pf._start_node_key ~= nil then
-            error(string.format('case #%d: wrong start_node_key (expected nil, got %s)', case_idx, pf._start_node_key))
+        if t.pf._start_node_key ~= nil then
+            error(string.format('case #%d: wrong start_node_key (expected nil, got %s)', case_idx, t.pf._start_node_key))
         end
-        if pf._end_node_key ~= nil then
-            error(string.format('case #%d: wrong end_node_key (expected nil, got %s)', case_idx, pf._end_node_key))
+        if t.pf._end_node_key ~= nil then
+            error(string.format('case #%d: wrong end_node_key (expected nil, got %s)', case_idx, t.pf._end_node_key))
         end
     end
 end
 
-function testGetTileNode(pf)
+function testGetTileNode(t)
     local case_tbl = {
         {
             input_node_tbl = {
-                [pf:_getNodeKey(1000, 2000)] = {
+                [t.pf:_getNodeKey(1000, 2000)] = {
                     x = 1000,
                     z = 2000,
                     is_ocean = true,
@@ -2582,7 +2950,7 @@ function testGetTileNode(pf)
         },
         {
             input_node_tbl = {
-                [pf:_getNodeKey(1000, 2000)] = {
+                [t.pf:_getNodeKey(1000, 2000)] = {
                     x = 1000,
                     z = 2000,
                     is_ocean = true,
@@ -2608,7 +2976,7 @@ function testGetTileNode(pf)
         },
         {
             input_node_tbl = {
-                [pf:_getNodeKey(1000, 2000)] = {
+                [t.pf:_getNodeKey(1000, 2000)] = {
                     x = 1000,
                     z = 2000,
                     is_ocean = true,
@@ -2635,15 +3003,15 @@ function testGetTileNode(pf)
     }
 
     for case_idx, case in ipairs(case_tbl) do
-        pf._node_tbl = deepCopy(case.input_node_tbl)
-        local actual = pf:_getTileNode(case.input_x, case.input_z)
+        t.pf._node_tbl = deepCopy(case.input_node_tbl)
+        local actual = t.pf:_getTileNode(case.input_x, case.input_z)
         if not deepEqual(case.expected, actual) then
             error(string.format('case #%d: wrong node', case_idx))
         end
     end
 end
 
-function testTestRectAndLineCollision(pf)
+function testTestRectAndLineCollision(t)
     local case_tbl = {
         {input_list = {-1, -1, 1, 1, 0, 0, 0, 0}, expected = true},
         {input_list = {-1, -1, 1, 1, -3, 0, 0, 3}, expected = false},
@@ -2654,14 +3022,14 @@ function testTestRectAndLineCollision(pf)
     }
 
     for case_idx, case in ipairs(case_tbl) do
-        local actual = pf:_testRectAndLineCollision(table.unpack(case.input_list))
+        local actual = t.pf:_testRectAndLineCollision(table.unpack(case.input_list))
         if case.expected ~= actual then
             error(string.format('case #%d: expected %s, got %s', case_idx, case.expected, actual))
         end
     end
 end
 
-function testTestLineAndLineCollision(pf)
+function testTestLineAndLineCollision(t)
     local case_tbl = {
         {input_list = {0, 0, 0, 1, 0.5, 0.5, 0.5, 0.5}, expected = false},
         {input_list = {0.5, 0.5, 0.5, 0.5, 0, 0, 1, 0}, expected = false},
@@ -2674,14 +3042,14 @@ function testTestLineAndLineCollision(pf)
     }
 
     for case_idx, case in ipairs(case_tbl) do
-        local actual = pf:_testLineAndLineCollision(table.unpack(case.input_list))
+        local actual = t.pf:_testLineAndLineCollision(table.unpack(case.input_list))
         if case.expected ~= actual then
             error(string.format('case #%d: expected %s, got %s', case_idx, case.expected, actual))
         end
     end
 end
 
-function testHeap(pf)
+function testHeap(t)
     local input_list = {43, 10, 41, 24, 23, 12, 53, 31, 96, 33, 22, 49, 27, 74, 72, 19, 16, 56, 52, 59, 93, 15, 17, 64, 32, 75, 14, 20, 98, 3, 90, 63, 94, 81, 0, 8, 80, 87, 76, 5, 39, 7, 83, 89, 51, 42, 60, 69, 4, 67, 11, 26, 71, 40, 61, 30, 38, 18, 77, 92, 97, 25, 36, 48, 47, 34, 73, 1, 9, 21, 82, 84, 28, 2, 68, 95, 50, 65, 91, 70, 29, 99, 55, 58, 88, 86, 37, 85, 35, 66, 62, 45, 46, 54, 79, 6, 57, 78, 13, 44}
     local expected_list = deepCopy(input_list)
     table.sort(expected_list)
@@ -2689,10 +3057,10 @@ function testHeap(pf)
     local actual_list = {}
     local heap = {}
     for _, input in ipairs(input_list) do
-        pf:_heapPush(heap, input)
+        t.pf:_heapPush(heap, input)
     end
     while true do
-        local actual = pf:_heapPop(heap)
+        local actual = t.pf:_heapPop(heap)
         if actual == nil then
             break
         end
@@ -2704,7 +3072,7 @@ function testHeap(pf)
     end
 end
 
-function testHeapPush(pf)
+function testHeapPush(t)
     local case_tbl = {
         {
             input_heap = {},
@@ -2771,14 +3139,14 @@ function testHeapPush(pf)
 
     for case_idx, case in ipairs(case_tbl) do
         local heap = deepCopy(case.input_heap)
-        pf:_heapPush(heap, table.unpack(case.input_value))
+        t.pf:_heapPush(heap, table.unpack(case.input_value))
         if not deepEqual(case.expected_heap, heap) then
             error(string.format('case #%d: wrong heap', case_idx))
         end
     end
 end
 
-function testHeapPop(pf)
+function testHeapPop(t)
     local case_tbl = {
         {
             input_heap = {},
@@ -2844,7 +3212,7 @@ function testHeapPop(pf)
 
     for case_idx, case in ipairs(case_tbl) do
         local heap = deepCopy(case.input_heap)
-        local ret = {pf:_heapPop(heap)}
+        local ret = {t.pf:_heapPop(heap)}
         if not deepEqual(case.expected_heap, heap) then
             error(string.format('case #%d: wrong heap', case_idx))
         end
@@ -2855,7 +3223,7 @@ function testHeapPop(pf)
 end
 
 
-function testHeapCompare(pf)
+function testHeapCompare(t)
     local case_tbl = {
         {input_list1 = {}, input_list2 = {}, expected = 0},
         {input_list1 = {}, input_list2 = {0}, expected = -1},
@@ -2877,20 +3245,40 @@ function testHeapCompare(pf)
     }
 
     for case_idx, case in ipairs(case_tbl) do
-        local actual = pf:_heapCompare(case.input_list1, case.input_list2)
+        local actual = t.pf:_heapCompare(case.input_list1, case.input_list2)
         if case.expected ~= actual then
             error(string.format('case #%d: expected %s, got %s', case_idx, case.expected, actual))
         end
     end
 end
 
-function buildPathfinder()
-    local env = buildEnv()
+function buildT()
+    local cfg = {}
+    local env = buildEnv(cfg)
     loadfile('script.lua', 't', env)()
-    return env.buildPathfinder()
+
+    local pf = env.buildPathfinder()
+    pf._node_tbl = {}
+    pf._temp_node_tbl = {}
+    pf._start_node_key = nil
+    pf._end_node_key = nil
+
+    return {
+        cfg = cfg,
+        env = env,
+        pf = deepCopy(pf),
+        _pf = pf,
+    }
 end
 
-function buildEnv()
+function resetT(t)
+    for key, _ in pairs(t.cfg) do
+        t.cfg[key] = nil
+    end
+    t.pf = deepCopy(t._pf)
+end
+
+function buildEnv(cfg)
     local env = {
         server = {},
         matrix = {},
@@ -2920,6 +3308,11 @@ function buildEnv()
         end
         if mat_z%1 ~= 0 then
             error(string.format('unsupported argument to mat_z (integer expected, got "%s")', mat_z))
+        end
+
+        local tile = (((cfg or {}).tile_tbl or {})[mat_x] or {})[mat_z]
+        if tile ~= nil and tile['name'] ~= '' then
+            return nil, false
         end
 
         return env.matrix.translation(mat_x, 0, mat_z), true
