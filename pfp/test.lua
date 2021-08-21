@@ -3303,10 +3303,6 @@ function buildEnv(cfg)
         return env.matrix.translation(mat_x, 0, mat_z), true
     end
 
-    function env.server.isDev()
-        return true
-    end
-
     function env.matrix.translation(x, y, z)
         if type(x) ~= 'number' then
             error('bad argument to x (number expected, got %s)', type(x))

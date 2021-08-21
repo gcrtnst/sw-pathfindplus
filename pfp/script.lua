@@ -476,7 +476,7 @@ function buildPathfinder()
         end
     end
 
-    if not server.isDev() then
+    if server.isDev ~= nil then
         pf:_init()
     end
     return pf
