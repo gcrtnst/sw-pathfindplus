@@ -260,11 +260,10 @@ function buildPathfinder()
                 next_node.x,
                 next_node.z
             ) then
-                local dist = math.sqrt((next_node.x - this_node.x)^2 + (next_node.z - this_node.z)^2)
-                local cost = {ocean_dist = dist, risky_dist = 0}
-                if not this_node.is_ocean or not next_node.is_ocean then
-                    cost = {ocean_dist = 0, risky_dist = dist}
-                end
+                local cost = {
+                    ocean_dist = math.sqrt((next_node.x - this_node.x)^2 + (next_node.z - this_node.z)^2),
+                    risky_dist = 0,
+                }
                 this_node.edge_tbl[next_node_key] = cost
                 next_node.edge_tbl[this_node_key] = cost
             end
