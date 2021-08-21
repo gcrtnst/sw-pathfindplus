@@ -170,15 +170,9 @@ function buildPathfinder()
             node.area_key = nil
         end
 
-        local world_area_key = self:_getNodeKey(-1/0, -1/0)
         for area_node_key, area_node in pairs(self._node_tbl) do
             if area_node.area_key ~= nil or not area_node.is_ocean then
                 goto continue
-            end
-
-            local area_key = world_area_key
-            if self._world_x1 <= area_node.x and area_node.x <= self._world_x2 and self._world_z1 <= area_node.z and area_node.z <= self._world_z2 then
-                area_key = area_node_key
             end
 
             local queue = {[area_node_key] = true}
@@ -190,7 +184,7 @@ function buildPathfinder()
                 queue[this_node_key] = nil
 
                 local this_node = self._node_tbl[this_node_key]
-                this_node.area_key = area_key
+                this_node.area_key = area_node_key
 
                 for next_node_key, cost in pairs(this_node.edge_tbl) do
                     local next_node = self._node_tbl[next_node_key]
@@ -201,6 +195,18 @@ function buildPathfinder()
             end
 
             ::continue::
+        end
+
+        local area_node_key = self:_getNodeKey(self._world_x1 - self._tile_size, self._world_z1 - self._tile_size)
+        local area_node = self._node_tbl[area_node_key]
+        if area_node ~= nil then
+            local old_world_area_key = area_node.area_key
+            local new_world_area_key = self:_getNodeKey(-1/0, -1/0)
+            for _, this_node in pairs(self._node_tbl) do
+                if this_node.area_key == old_world_area_key then
+                    this_node.area_key = new_world_area_key
+                end
+            end
         end
     end
 
