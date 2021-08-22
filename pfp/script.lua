@@ -30,12 +30,36 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, tar
     server.addMapObject(user_peer_id, g_savedata['ui_id'], 0, 1, player_x, player_z, 0, 0, 0, 0, 'matrix_start', 0, '')
     server.addMapObject(user_peer_id, g_savedata['ui_id'], 0, 0, target_x, target_z, 0, 0, 0, 0, 'matrix_end', 0, '')
 
-    local path = g_pf:pathfindOcean(player_pos, target_pos)
-    local prev_pos = player_pos
-    for i, _ in ipairs(path) do
-        local next_pos = matrix.translation(path[i]['x'], 0, path[i]['z'])
-        server.addMapLine(user_peer_id, g_savedata['ui_id'], prev_pos, next_pos, 1)
-        prev_pos = next_pos
+    local ocean_path_list = server.pathfindOcean(player_pos, target_pos)
+    local ocean_prev_x = player_x
+    local ocean_prev_z = player_z
+    for _, ocean_path in ipairs(ocean_path_list) do
+        local ocean_next_x = ocean_path['x']
+        local ocean_next_z = ocean_path['z']
+        server.addMapLine(
+            user_peer_id,
+            g_savedata['ui_id'],
+            matrix.translation(ocean_prev_x, 0, ocean_prev_z),
+            matrix.translation(ocean_prev_x*0.75 + ocean_next_x*0.25, 0, ocean_prev_z*0.75 + ocean_next_z*0.25),
+            1
+        )
+        server.addMapLine(
+            user_peer_id,
+            g_savedata['ui_id'],
+            matrix.translation(ocean_prev_x*0.25 + ocean_next_x*0.75, 0, ocean_prev_z*0.25 + ocean_next_z*0.75),
+            matrix.translation(ocean_next_x, 0, ocean_next_z),
+            1
+        )
+        ocean_prev_x = ocean_next_x
+        ocean_prev_z = ocean_next_z
+    end
+
+    local plus_path_list = g_pf:pathfindOcean(player_pos, target_pos)
+    local plus_prev_pos = player_pos
+    for _, plus_path in ipairs(plus_path_list) do
+        local plus_next_pos = matrix.translation(plus_path['x'], 0, plus_path['z'])
+        server.addMapLine(user_peer_id, g_savedata['ui_id'], plus_prev_pos, plus_next_pos, 1)
+        plus_prev_pos = plus_next_pos
     end
 end
 
