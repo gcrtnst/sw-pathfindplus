@@ -4,35 +4,82 @@ g_cmd = '?pathfind'
 g_announce_name = '[PathfindPlus]'
 g_pf = nil
 
-function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, target_x, target_z, ...)
+function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...)
     if cmd ~= g_cmd then
         return
     end
 
-    target_x = tonumber(target_x)
-    target_z = tonumber(target_z)
-    if target_x == nil or target_z == nil then
-        server.announce(g_announce_name, 'error: invalid argument', user_peer_id)
-        return
+    local player_name, is_success = server.getPlayerName(user_peer_id)
+    if not is_success then
+        player_name = '<player>'
+    end
+    server.announce(player_name, table.concat({g_cmd, ...}, ' '), user_peer_id)
+
+    local args = {...}
+    if args[#args] == '' then
+        args[#args] = nil
     end
 
-    local target_pos = matrix.translation(target_x, 0, target_z)
-    local player_pos, is_success = server.getPlayerPos(user_peer_id)
-    if not is_success then
-        server.announce(g_announce_name, 'error: failed to retrieve player position', user_peer_id)
-        return
+    local start_x = nil
+    local start_z = nil
+    local end_x = nil
+    local end_z = nil
+    local i = 1
+    while args[i] ~= nil do
+        if args[i] == '-start' then
+            start_x = tonumber(args[i + 1])
+            start_z = tonumber(args[i + 2])
+            if start_x == nil or start_z == nil then
+                server.announce(g_announce_name, 'error: invalid parameter for -start', user_peer_id)
+                return
+            end
+            i = i + 3
+        elseif args[i] == '-end' then
+            end_x = tonumber(args[i + 1])
+            end_z = tonumber(args[i + 2])
+            if end_x == nil or end_z == nil then
+                server.announce(g_announce_name, 'error: invalid parameter for -end', user_peer_id)
+                return
+            end
+            i = i + 3
+        else
+            server.announce(g_announce_name, string.format('error: invalid argument "%s"', args[i]), user_peer_id)
+            return
+        end
+    end
+
+    if start_x == nil or start_z == nil then
+        local player_pos, is_success = server.getPlayerPos(user_peer_id)
+        if not is_success then
+            server.announce(g_announce_name, 'error: failed to get player position', user_peer_id)
+            return
+        end
+        local player_x, _, player_z = matrix.position(player_pos)
+        start_x = player_x
+        start_z = player_z
+    end
+    if end_x == nil or end_z == nil then
+        end_x = math.random(-77000, 65000)
+        end_z = math.random(-65000, 131000)
     end
 
     server.removeMapObject(user_peer_id, g_savedata['ui_id'])
     server.removeMapLine(user_peer_id, g_savedata['ui_id'])
 
-    local player_x, _, player_z = matrix.position(player_pos)
-    server.addMapObject(user_peer_id, g_savedata['ui_id'], 0, 1, player_x, player_z, 0, 0, 0, 0, 'matrix_start', 0, '')
-    server.addMapObject(user_peer_id, g_savedata['ui_id'], 0, 0, target_x, target_z, 0, 0, 0, 0, 'matrix_end', 0, '')
+    local matrix_start = matrix.translation(start_x, 0, start_z)
+    local matrix_end = matrix.translation(end_x, 0, end_z)
+    execPathfind(user_peer_id, matrix_start, matrix_end)
+end
 
-    local ocean_path_list = server.pathfindOcean(player_pos, target_pos)
-    local ocean_prev_x = player_x
-    local ocean_prev_z = player_z
+function execPathfind(user_peer_id, matrix_start, matrix_end)
+    local start_x, _, start_z = matrix.position(matrix_start)
+    local end_x, _, end_z = matrix.position(matrix_end)
+    server.addMapObject(user_peer_id, g_savedata['ui_id'], 0, 1, start_x, start_z, 0, 0, 0, 0, 'start', 0, 'PathfindPlus')
+    server.addMapObject(user_peer_id, g_savedata['ui_id'], 0, 0, end_x, end_z, 0, 0, 0, 0, 'end', 0, 'PathfindPlus')
+
+    local ocean_path_list = server.pathfindOcean(matrix_start, matrix_end)
+    local ocean_prev_x = start_x
+    local ocean_prev_z = start_z
     for _, ocean_path in ipairs(ocean_path_list) do
         local ocean_next_x = ocean_path['x']
         local ocean_next_z = ocean_path['z']
@@ -54,8 +101,8 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, tar
         ocean_prev_z = ocean_next_z
     end
 
-    local plus_path_list = g_pf:pathfindOcean(player_pos, target_pos)
-    local plus_prev_pos = player_pos
+    local plus_path_list = g_pf:pathfindOcean(matrix_start, matrix_end)
+    local plus_prev_pos = matrix_start
     for _, plus_path in ipairs(plus_path_list) do
         local plus_next_pos = matrix.translation(plus_path['x'], 0, plus_path['z'])
         server.addMapLine(user_peer_id, g_savedata['ui_id'], plus_prev_pos, plus_next_pos, 1)
@@ -73,6 +120,7 @@ function onCreate(is_world_create)
     end
 
     g_pf = buildPathfinder()
+    math.randomseed(server.getTimeMillisec())
 end
 
 function buildPathfinder()
