@@ -463,11 +463,13 @@ function buildPathfinder()
                 return 1
             end
 
-            if type(value1) ~= type(value2) then
-                value1 = type(value1)
-                value2 = type(value2)
+            local type1 = type(value1)
+            local type2 = type(value2)
+            if type1 ~= type2 then
+                value1 = type1
+                value2 = type2
             end
-            if type(value1) ~= 'number' and type(value1) ~= 'string' then
+            if type1 ~= 'number' and type1 ~= 'string' then
                 value1 = tostring(value1)
                 value2 = tostring(value2)
             end
