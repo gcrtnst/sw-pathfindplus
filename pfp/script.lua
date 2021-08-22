@@ -63,21 +63,15 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
         end_z = math.random(-65000, 131000)
     end
 
-    server.removeMapObject(user_peer_id, g_savedata['ui_id'])
-    server.removeMapLine(user_peer_id, g_savedata['ui_id'])
-
     local matrix_start = matrix.translation(start_x, 0, start_z)
     local matrix_end = matrix.translation(end_x, 0, end_z)
-    execPathfind(user_peer_id, matrix_start, matrix_end)
-end
-
-function execPathfind(user_peer_id, matrix_start, matrix_end)
-    local start_x, _, start_z = matrix.position(matrix_start)
-    local end_x, _, end_z = matrix.position(matrix_end)
+    server.removeMapObject(user_peer_id, g_savedata['ui_id'])
+    server.removeMapLine(user_peer_id, g_savedata['ui_id'])
     server.addMapObject(user_peer_id, g_savedata['ui_id'], 0, 1, start_x, start_z, 0, 0, 0, 0, 'start', 0, 'PathfindPlus')
     server.addMapObject(user_peer_id, g_savedata['ui_id'], 0, 0, end_x, end_z, 0, 0, 0, 0, 'end', 0, 'PathfindPlus')
 
     local ocean_path_list = server.pathfindOcean(matrix_start, matrix_end)
+    local ocean_dist = 0
     local ocean_prev_x = start_x
     local ocean_prev_z = start_z
     for _, ocean_path in ipairs(ocean_path_list) do
@@ -97,17 +91,31 @@ function execPathfind(user_peer_id, matrix_start, matrix_end)
             matrix.translation(ocean_next_x, 0, ocean_next_z),
             1
         )
+        ocean_dist = ocean_dist + ((ocean_next_x - ocean_prev_x)^2 + (ocean_next_z - ocean_prev_z)^2)^0.5
         ocean_prev_x = ocean_next_x
         ocean_prev_z = ocean_next_z
     end
 
     local plus_path_list = g_pf:pathfindOcean(matrix_start, matrix_end)
-    local plus_prev_pos = matrix_start
+    local plus_dist = 0
+    local plus_prev_x = start_x
+    local plus_prev_z = start_z
     for _, plus_path in ipairs(plus_path_list) do
-        local plus_next_pos = matrix.translation(plus_path['x'], 0, plus_path['z'])
-        server.addMapLine(user_peer_id, g_savedata['ui_id'], plus_prev_pos, plus_next_pos, 1)
-        plus_prev_pos = plus_next_pos
+        local plus_next_x = plus_path['x']
+        local plus_next_z = plus_path['z']
+        server.addMapLine(
+            user_peer_id,
+            g_savedata['ui_id'],
+            matrix.translation(plus_prev_x, 0, plus_prev_z),
+            matrix.translation(plus_next_x, 0, plus_next_z),
+            1
+        )
+        plus_dist = plus_dist + ((plus_next_x - plus_prev_x)^2 + (plus_next_z - plus_prev_z)^2)^0.5
+        plus_prev_x = plus_next_x
+        plus_prev_z = plus_next_z
     end
+
+    server.announce(g_announce_name, string.format('PathfindOcean distance: %.1f\nPathfindPlus distance: %.1f', ocean_dist, plus_dist))
 end
 
 function onCreate(is_world_create)
