@@ -294,7 +294,7 @@ function buildPathfinder()
         local heap = {}
         self:_heapPush(heap, 0, 0, self._start_node_key)
         while true do
-            local _, _, this_node_key = self:_heapPop(heap)
+            local this_node_key = self:_heapPop(heap)
             if this_node_key == nil then
                 break
             end
@@ -400,87 +400,62 @@ function buildPathfinder()
         )
     end
 
-    function pf:_heapPush(heap, ...)
-        table.insert(heap, {...})
+    function pf:_heapPush(heap, cost1, cost2, key)
+        heap[#heap + 1] = {
+            cost1 = cost1,
+            cost2 = cost2,
+            key = key,
+        }
 
         local idx = #heap
         while idx > 1 do
+            local item = heap[idx]
             local parent_idx = idx//2
-            if self:_heapCompare(heap[parent_idx], heap[idx]) <= 0 then
+            local parent_item = heap[parent_idx]
+            if parent_item.cost1 < item.cost1 or (parent_item.cost1 == item.cost1 and parent_item.cost2 <= item.cost2) then
                 break
             end
 
-            local tmp = heap[parent_idx]
-            heap[parent_idx] = heap[idx]
-            heap[idx] = tmp
+            heap[parent_idx] = item
+            heap[idx] = parent_item
             idx = parent_idx
         end
     end
 
     function pf:_heapPop(heap)
-        if #heap <= 0 then
+        if heap[1] == nil then
             return nil
         end
-        local ret = heap[1]
+        local key = heap[1].key
 
         heap[1] = heap[#heap]
-        table.remove(heap)
+        heap[#heap] = nil
 
         local idx = 1
         while true do
+            local item = heap[idx]
+
             local child_idx = idx*2
-            if child_idx > #heap then
-                break
-            end
-            if child_idx + 1 <= #heap and self:_heapCompare(heap[child_idx + 1], heap[child_idx]) < 0 then
-                child_idx = child_idx + 1
-            end
-            if self:_heapCompare(heap[idx], heap[child_idx]) <= 0 then
+            local child_item = heap[child_idx]
+            if child_item == nil then
                 break
             end
 
-            local tmp = heap[child_idx]
-            heap[child_idx] = heap[idx]
-            heap[idx] = tmp
+            local brother_idx = child_idx + 1
+            local brother_item = heap[brother_idx]
+            if brother_item ~= nil and (brother_item.cost1 < child_item.cost1 or (brother_item.cost1 == child_item.cost1 and brother_item.cost2 < child_item.cost2)) then
+                child_idx = brother_idx
+                child_item = brother_item
+            end
+
+            if item.cost1 < child_item.cost1 or (item.cost1 == child_item.cost1 and item.cost2 <= child_item.cost2) then
+                break
+            end
+            heap[child_idx] = item
+            heap[idx] = child_item
             idx = child_idx
         end
-        return table.unpack(ret)
-    end
-
-    function pf:_heapCompare(list1, list2)
-        local i = 1
-        while true do
-            local value1 = list1[i]
-            local value2 = list2[i]
-
-            if value1 == nil and value2 == nil then
-                return 0
-            end
-            if value1 == nil then
-                return -1
-            end
-            if value2 == nil then
-                return 1
-            end
-
-            local type1 = type(value1)
-            local type2 = type(value2)
-            if type1 ~= type2 then
-                value1 = type1
-                value2 = type2
-            end
-            if type1 ~= 'number' and type1 ~= 'string' then
-                value1 = tostring(value1)
-                value2 = tostring(value2)
-            end
-            if value1 < value2 then
-                return -1
-            end
-            if value1 ~= value2 then
-                return 1
-            end
-            i = i + 1
-        end
+        return key
     end
 
     if server.isDev ~= nil then

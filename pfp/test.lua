@@ -16,7 +16,6 @@ function test()
         {name = 'testHeap', fn = testHeap},
         {name = 'testHeapPush', fn = testHeapPush},
         {name = 'testHeapPop', fn = testHeapPop},
-        {name = 'testHeapCompare', fn = testHeapCompare},
     }
 
     for _, test in ipairs(test_tbl) do
@@ -2930,7 +2929,7 @@ function testHeap(t)
     local actual_list = {}
     local heap = {}
     for _, input in ipairs(input_list) do
-        t.pf:_heapPush(heap, input)
+        t.pf:_heapPush(heap, input//10, input%10, input)
     end
     while true do
         local actual = t.pf:_heapPop(heap)
@@ -2949,70 +2948,186 @@ function testHeapPush(t)
     local case_tbl = {
         {
             input_heap = {},
-            input_value = {1, 2},
+            input_cost1 = 1,
+            input_cost2 = 2,
+            input_key = 3,
             expected_heap = {
-                [1] = {1, 2},
+                [1] = {cost1 = 1, cost2 = 2, key = 3},
             },
         },
         {
             input_heap = {
-                [1] = {1},
-                [2] = {3},
-                [3] = {5},
-                [4] = {7},
-                [5] = {9},
+                [1] = {cost1 = -1, cost2 = -1, key = 1},
             },
-            input_value = {6},
+            input_cost1 = 0,
+            input_cost2 = 0,
+            input_key = 2,
             expected_heap = {
-                [1] = {1},
-                [2] = {3},
-                [3] = {5},
-                [4] = {7},
-                [5] = {9},
-                [6] = {6},
+                [1] = {cost1 = -1, cost2 = -1, key = 1},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
             },
         },
         {
             input_heap = {
-                [1] = {1},
-                [2] = {3},
-                [3] = {5},
-                [4] = {7},
-                [5] = {9},
+                [1] = {cost1 = -1, cost2 = 0, key = 1},
             },
-            input_value = {4},
+            input_cost1 = 0,
+            input_cost2 = 0,
+            input_key = 2,
             expected_heap = {
-                [1] = {1},
-                [2] = {3},
-                [3] = {4},
-                [4] = {7},
-                [5] = {9},
-                [6] = {5},
+                [1] = {cost1 = -1, cost2 = 0, key = 1},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
             },
         },
         {
             input_heap = {
-                [1] = {1},
-                [2] = {3},
-                [3] = {5},
-                [4] = {7},
-                [5] = {9},
+                [1] = {cost1 = -1, cost2 = 1, key = 1},
             },
-            input_value = {0},
+            input_cost1 = 0,
+            input_cost2 = 0,
+            input_key = 2,
             expected_heap = {
-                [1] = {0},
-                [2] = {3},
-                [3] = {1},
-                [4] = {7},
-                [5] = {9},
-                [6] = {5},
+                [1] = {cost1 = -1, cost2 = 1, key = 1},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+            },
+        },
+        {
+            input_heap = {
+                [1] = {cost1 = 0, cost2 = -1, key = 1},
+            },
+            input_cost1 = 0,
+            input_cost2 = 0,
+            input_key = 2,
+            expected_heap = {
+                [1] = {cost1 = 0, cost2 = -1, key = 1},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+            },
+        },
+        {
+            input_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 1},
+            },
+            input_cost1 = 0,
+            input_cost2 = 0,
+            input_key = 2,
+            expected_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 1},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+            },
+        },
+        {
+            input_heap = {
+                [1] = {cost1 = 0, cost2 = 1, key = 1},
+            },
+            input_cost1 = 0,
+            input_cost2 = 0,
+            input_key = 2,
+            expected_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 2},
+                [2] = {cost1 = 0, cost2 = 1, key = 1},
+            },
+        },
+        {
+            input_heap = {
+                [1] = {cost1 = 1, cost2 = -1, key = 1},
+            },
+            input_cost1 = 0,
+            input_cost2 = 0,
+            input_key = 2,
+            expected_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 2},
+                [2] = {cost1 = 1, cost2 = -1, key = 1},
+            },
+        },
+        {
+            input_heap = {
+                [1] = {cost1 = 1, cost2 = 0, key = 1},
+            },
+            input_cost1 = 0,
+            input_cost2 = 0,
+            input_key = 2,
+            expected_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 2},
+                [2] = {cost1 = 1, cost2 = 0, key = 1},
+            },
+        },
+        {
+            input_heap = {
+                [1] = {cost1 = 1, cost2 = 1, key = 1},
+            },
+            input_cost1 = 0,
+            input_cost2 = 0,
+            input_key = 2,
+            expected_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 2},
+                [2] = {cost1 = 1, cost2 = 1, key = 1},
+            },
+        },
+        {
+            input_heap = {
+                [1] = {cost1 = 0, cost2 = 1, key = 1},
+                [2] = {cost1 = 0, cost2 = 3, key = 2},
+                [3] = {cost1 = 0, cost2 = 5, key = 3},
+                [4] = {cost1 = 0, cost2 = 7, key = 4},
+                [5] = {cost1 = 0, cost2 = 9, key = 5},
+            },
+            input_cost1 = 0,
+            input_cost2 = 6,
+            input_key = 6,
+            expected_heap = {
+                [1] = {cost1 = 0, cost2 = 1, key = 1},
+                [2] = {cost1 = 0, cost2 = 3, key = 2},
+                [3] = {cost1 = 0, cost2 = 5, key = 3},
+                [4] = {cost1 = 0, cost2 = 7, key = 4},
+                [5] = {cost1 = 0, cost2 = 9, key = 5},
+                [6] = {cost1 = 0, cost2 = 6, key = 6},
+            },
+        },
+        {
+            input_heap = {
+                [1] = {cost1 = 0, cost2 = 1, key = 1},
+                [2] = {cost1 = 0, cost2 = 3, key = 2},
+                [3] = {cost1 = 0, cost2 = 5, key = 3},
+                [4] = {cost1 = 0, cost2 = 7, key = 4},
+                [5] = {cost1 = 0, cost2 = 9, key = 5},
+            },
+            input_cost1 = 0,
+            input_cost2 = 4,
+            input_key = 6,
+            expected_heap = {
+                [1] = {cost1 = 0, cost2 = 1, key = 1},
+                [2] = {cost1 = 0, cost2 = 3, key = 2},
+                [3] = {cost1 = 0, cost2 = 4, key = 6},
+                [4] = {cost1 = 0, cost2 = 7, key = 4},
+                [5] = {cost1 = 0, cost2 = 9, key = 5},
+                [6] = {cost1 = 0, cost2 = 5, key = 3},
+            },
+        },
+        {
+            input_heap = {
+                [1] = {cost1 = 0, cost2 = 1, key = 1},
+                [2] = {cost1 = 0, cost2 = 3, key = 2},
+                [3] = {cost1 = 0, cost2 = 5, key = 3},
+                [4] = {cost1 = 0, cost2 = 7, key = 4},
+                [5] = {cost1 = 0, cost2 = 9, key = 5},
+            },
+            input_cost1 = 0,
+            input_cost2 = 0,
+            input_key = 6,
+            expected_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 6},
+                [2] = {cost1 = 0, cost2 = 3, key = 2},
+                [3] = {cost1 = 0, cost2 = 1, key = 1},
+                [4] = {cost1 = 0, cost2 = 7, key = 4},
+                [5] = {cost1 = 0, cost2 = 9, key = 5},
+                [6] = {cost1 = 0, cost2 = 5, key = 3},
             },
         },
     }
 
     for case_idx, case in ipairs(case_tbl) do
         local heap = deepCopy(case.input_heap)
-        t.pf:_heapPush(heap, table.unpack(case.input_value))
+        t.pf:_heapPush(heap, case.input_cost1, case.input_cost2, case.input_key)
         if not deepEqual(case.expected_heap, heap) then
             error(string.format('case #%d: wrong heap', case_idx))
         end
@@ -3024,103 +3139,307 @@ function testHeapPop(t)
         {
             input_heap = {},
             expected_heap = {},
-            expected_ret = {},
+            expected_key = nil,
         },
         {
             input_heap = {
-                [1] = {1, 2},
+                [1] = {cost1 = 0, cost2 = 0, key = 1},
             },
             expected_heap = {},
-            expected_ret = {1, 2},
+            expected_key = 1,
         },
         {
             input_heap = {
-                [1] = {1},
-                [2] = {3},
-                [3] = {5},
-                [4] = {7},
-                [5] = {9},
+                [1] = {cost1 = 0, cost2 = 0, key = 1},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+                [3] = {cost1 = -1, cost2 = -1, key = 3},
+                [4] = {cost1 = 2, cost2 = 0, key = 4},
             },
             expected_heap = {
-                [1] = {3},
-                [2] = {7},
-                [3] = {5},
-                [4] = {9},
+                [1] = {cost1 = -1, cost2 = -1, key = 3},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+                [3] = {cost1 = 2, cost2 = 0, key = 4},
             },
-            expected_ret = {1},
+            expected_key = 1,
         },
         {
             input_heap = {
-                [1] = {1},
-                [2] = {5},
-                [3] = {3},
-                [4] = {7},
-                [5] = {9},
+                [1] = {cost1 = 0, cost2 = 0, key = 1},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+                [3] = {cost1 = -1, cost2 = 0, key = 3},
+                [4] = {cost1 = 2, cost2 = 0, key = 4},
             },
             expected_heap = {
-                [1] = {3},
-                [2] = {5},
-                [3] = {9},
-                [4] = {7},
+                [1] = {cost1 = -1, cost2 = 0, key = 3},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+                [3] = {cost1 = 2, cost2 = 0, key = 4},
             },
-            expected_ret = {1},
+            expected_key = 1,
         },
         {
             input_heap = {
-                [1] = {1},
-                [2] = {3},
-                [3] = {5},
-                [4] = {7},
-                [5] = {4},
+                [1] = {cost1 = 0, cost2 = 0, key = 1},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+                [3] = {cost1 = -1, cost2 = 1, key = 3},
+                [4] = {cost1 = 2, cost2 = 0, key = 4},
             },
             expected_heap = {
-                [1] = {3},
-                [2] = {4},
-                [3] = {5},
-                [4] = {7},
+                [1] = {cost1 = -1, cost2 = 1, key = 3},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+                [3] = {cost1 = 2, cost2 = 0, key = 4},
             },
-            expected_ret = {1},
+            expected_key = 1,
+        },
+        {
+            input_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 1},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+                [3] = {cost1 = 0, cost2 = -1, key = 3},
+                [4] = {cost1 = 2, cost2 = 0, key = 4},
+            },
+            expected_heap = {
+                [1] = {cost1 = 0, cost2 = -1, key = 3},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+                [3] = {cost1 = 2, cost2 = 0, key = 4},
+            },
+            expected_key = 1,
+        },
+        {
+            input_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 1},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+                [3] = {cost1 = 0, cost2 = 0, key = 3},
+                [4] = {cost1 = 2, cost2 = 0, key = 4},
+            },
+            expected_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 2},
+                [2] = {cost1 = 2, cost2 = 0, key = 4},
+                [3] = {cost1 = 0, cost2 = 0, key = 3},
+            },
+            expected_key = 1,
+        },
+        {
+            input_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 1},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+                [3] = {cost1 = 0, cost2 = 1, key = 3},
+                [4] = {cost1 = 2, cost2 = 0, key = 4},
+            },
+            expected_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 2},
+                [2] = {cost1 = 2, cost2 = 0, key = 4},
+                [3] = {cost1 = 0, cost2 = 1, key = 3},
+            },
+            expected_key = 1,
+        },
+        {
+            input_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 1},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+                [3] = {cost1 = 1, cost2 = -1, key = 3},
+                [4] = {cost1 = 2, cost2 = 0, key = 4},
+            },
+            expected_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 2},
+                [2] = {cost1 = 2, cost2 = 0, key = 4},
+                [3] = {cost1 = 1, cost2 = -1, key = 3},
+            },
+            expected_key = 1,
+        },
+        {
+            input_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 1},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+                [3] = {cost1 = 1, cost2 = 0, key = 3},
+                [4] = {cost1 = 2, cost2 = 0, key = 4},
+            },
+            expected_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 2},
+                [2] = {cost1 = 2, cost2 = 0, key = 4},
+                [3] = {cost1 = 1, cost2 = 0, key = 3},
+            },
+            expected_key = 1,
+        },
+        {
+            input_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 1},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+                [3] = {cost1 = 1, cost2 = 1, key = 3},
+                [4] = {cost1 = 2, cost2 = 0, key = 4},
+            },
+            expected_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 2},
+                [2] = {cost1 = 2, cost2 = 0, key = 4},
+                [3] = {cost1 = 1, cost2 = 1, key = 3},
+            },
+            expected_key = 1,
+        },
+        {
+            input_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 1},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+                [3] = {cost1 = -1, cost2 = -1, key = 3},
+            },
+            expected_heap = {
+                [1] = {cost1 = -1, cost2 = -1, key = 3},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+            },
+            expected_key = 1,
+        },
+        {
+            input_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 1},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+                [3] = {cost1 = -1, cost2 = 0, key = 3},
+            },
+            expected_heap = {
+                [1] = {cost1 = -1, cost2 = 0, key = 3},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+            },
+            expected_key = 1,
+        },
+        {
+            input_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 1},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+                [3] = {cost1 = -1, cost2 = 1, key = 3},
+            },
+            expected_heap = {
+                [1] = {cost1 = -1, cost2 = 1, key = 3},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+            },
+            expected_key = 1,
+        },
+        {
+            input_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 1},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+                [3] = {cost1 = 0, cost2 = -1, key = 3},
+            },
+            expected_heap = {
+                [1] = {cost1 = 0, cost2 = -1, key = 3},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+            },
+            expected_key = 1,
+        },
+        {
+            input_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 1},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+                [3] = {cost1 = 0, cost2 = 0, key = 3},
+            },
+            expected_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 3},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+            },
+            expected_key = 1,
+        },
+        {
+            input_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 1},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+                [3] = {cost1 = 0, cost2 = 1, key = 3},
+            },
+            expected_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 2},
+                [2] = {cost1 = 0, cost2 = 1, key = 3},
+            },
+            expected_key = 1,
+        },
+        {
+            input_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 1},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+                [3] = {cost1 = 1, cost2 = -1, key = 3},
+            },
+            expected_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 2},
+                [2] = {cost1 = 1, cost2 = -1, key = 3},
+            },
+            expected_key = 1,
+        },
+        {
+            input_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 1},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+                [3] = {cost1 = 1, cost2 = 0, key = 3},
+            },
+            expected_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 2},
+                [2] = {cost1 = 1, cost2 = 0, key = 3},
+            },
+            expected_key = 1,
+        },
+        {
+            input_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 1},
+                [2] = {cost1 = 0, cost2 = 0, key = 2},
+                [3] = {cost1 = 1, cost2 = 1, key = 3},
+            },
+            expected_heap = {
+                [1] = {cost1 = 0, cost2 = 0, key = 2},
+                [2] = {cost1 = 1, cost2 = 1, key = 3},
+            },
+            expected_key = 1,
+        },
+        {
+            input_heap = {
+                [1] = {cost1 = 0, cost2 = 1, key = 1},
+                [2] = {cost1 = 0, cost2 = 3, key = 2},
+                [3] = {cost1 = 0, cost2 = 5, key = 3},
+                [4] = {cost1 = 0, cost2 = 7, key = 4},
+                [5] = {cost1 = 0, cost2 = 9, key = 5},
+            },
+            expected_heap = {
+                [1] = {cost1 = 0, cost2 = 3, key = 2},
+                [2] = {cost1 = 0, cost2 = 7, key = 4},
+                [3] = {cost1 = 0, cost2 = 5, key = 3},
+                [4] = {cost1 = 0, cost2 = 9, key = 5},
+            },
+            expected_key = 1,
+        },
+        {
+            input_heap = {
+                [1] = {cost1 = 0, cost2 = 1, key = 1},
+                [2] = {cost1 = 0, cost2 = 5, key = 2},
+                [3] = {cost1 = 0, cost2 = 3, key = 3},
+                [4] = {cost1 = 0, cost2 = 7, key = 4},
+                [5] = {cost1 = 0, cost2 = 9, key = 5},
+            },
+            expected_heap = {
+                [1] = {cost1 = 0, cost2 = 3, key = 3},
+                [2] = {cost1 = 0, cost2 = 5, key = 2},
+                [3] = {cost1 = 0, cost2 = 9, key = 5},
+                [4] = {cost1 = 0, cost2 = 7, key = 4},
+            },
+            expected_key = 1,
+        },
+        {
+            input_heap = {
+                [1] = {cost1 = 0, cost2 = 1, key = 1},
+                [2] = {cost1 = 0, cost2 = 3, key = 2},
+                [3] = {cost1 = 0, cost2 = 5, key = 3},
+                [4] = {cost1 = 0, cost2 = 7, key = 4},
+                [5] = {cost1 = 0, cost2 = 4, key = 5},
+            },
+            expected_heap = {
+                [1] = {cost1 = 0, cost2 = 3, key = 2},
+                [2] = {cost1 = 0, cost2 = 4, key = 5},
+                [3] = {cost1 = 0, cost2 = 5, key = 3},
+                [4] = {cost1 = 0, cost2 = 7, key = 4},
+            },
+            expected_key = 1,
         },
     }
 
     for case_idx, case in ipairs(case_tbl) do
         local heap = deepCopy(case.input_heap)
-        local ret = {t.pf:_heapPop(heap)}
+        local actual_key = t.pf:_heapPop(heap)
         if not deepEqual(case.expected_heap, heap) then
             error(string.format('case #%d: wrong heap', case_idx))
         end
-        if not deepEqual(case.expected_ret, ret) then
-            error(string.format('case #%d: wrong ret', case_idx))
-        end
-    end
-end
-
-
-function testHeapCompare(t)
-    local case_tbl = {
-        {input_list1 = {}, input_list2 = {}, expected = 0},
-        {input_list1 = {}, input_list2 = {0}, expected = -1},
-        {input_list1 = {0}, input_list2 = {}, expected = 1},
-        {input_list1 = {0}, input_list2 = {1}, expected = -1},
-        {input_list1 = {1}, input_list2 = {0}, expected = 1},
-        {input_list1 = {0}, input_list2 = {0}, expected = 0},
-        {input_list1 = {0}, input_list2 = {0, 0}, expected = -1},
-        {input_list1 = {0, 0}, input_list2 = {0}, expected = 1},
-        {input_list1 = {0, 0}, input_list2 = {0, 1}, expected = -1},
-        {input_list1 = {0, 1}, input_list2 = {0, 0}, expected = 1},
-        {input_list1 = {-12}, input_list2 = {-1}, expected = -1},
-        {input_list1 = {-1}, input_list2 = {-12}, expected = 1},
-        {input_list1 = {0}, input_list2 = {'0'}, expected = -1},
-        {input_list1 = {'0'}, input_list2 = {0}, expected = 1},
-        {input_list1 = {false}, input_list2 = {false}, expected = 0},
-        {input_list1 = {false}, input_list2 = {true}, expected = -1},
-        {input_list1 = {true}, input_list2 = {false}, expected = 1},
-    }
-
-    for case_idx, case in ipairs(case_tbl) do
-        local actual = t.pf:_heapCompare(case.input_list1, case.input_list2)
-        if case.expected ~= actual then
-            error(string.format('case #%d: expected %s, got %s', case_idx, case.expected, actual))
+        if actual_key ~= case.expected_key then
+            error(string.format('case #%d: wrong key (expected %s, got %s)', case_idx, case.expected_key, actual_key))
         end
     end
 end
