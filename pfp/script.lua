@@ -153,7 +153,7 @@ function buildPathfinder()
 
             for dir, next_node_key in pairs(next_node_tbl) do
                 local next_node = self._node_tbl[next_node_key]
-                local dist = math.sqrt((next_node.x - this_node.x)^2 + (next_node.z - this_node.z)^2)
+                local dist = ((next_node.x - this_node.x)^2 + (next_node.z - this_node.z)^2)^0.5
 
                 local cost = {ocean_dist = dist, risky_dist = 0}
                 if (not this_node.is_ocean) or (not next_node.is_ocean) or (dir%2 == 1 and (not next_node_ocean_tbl[((dir - 1)//3)*3 + 2] or not next_node_ocean_tbl[(dir - 1)%3 + 4])) then
@@ -237,7 +237,7 @@ function buildPathfinder()
 
             for next_node_key, tile_cost in pairs(tile_node.edge_tbl) do
                 local next_node = self._node_tbl[next_node_key]
-                local dist = math.sqrt((next_node.x - this_node.x)^2 + (next_node.z - this_node.z)^2)
+                local dist = ((next_node.x - this_node.x)^2 + (next_node.z - this_node.z)^2)^0.5
                 local cost = {ocean_dist = dist, risky_dist = 0}
                 if tile_cost.risky_dist > 0 then
                     cost = {ocean_dist = 0, risky_dist = dist}
@@ -246,7 +246,7 @@ function buildPathfinder()
                 next_node.edge_tbl[this_node_key] = cost
             end
 
-            local dist = math.sqrt((tile_node.x - this_node.x)^2 + (tile_node.z - this_node.z)^2)
+            local dist = ((tile_node.x - this_node.x)^2 + (tile_node.z - this_node.z)^2)^0.5
             local cost = {ocean_dist = dist, risky_dist = 0}
             if not tile_node.is_ocean then
                 cost = {ocean_dist = 0, risky_dist = dist}
@@ -267,7 +267,7 @@ function buildPathfinder()
                 next_node.z
             ) then
                 local cost = {
-                    ocean_dist = math.sqrt((next_node.x - this_node.x)^2 + (next_node.z - this_node.z)^2),
+                    ocean_dist = ((next_node.x - this_node.x)^2 + (next_node.z - this_node.z)^2)^0.5,
                     risky_dist = 0,
                 }
                 this_node.edge_tbl[next_node_key] = cost
@@ -316,7 +316,7 @@ function buildPathfinder()
                 if next_node.cost == nil or next_cost.risky_dist < next_node.cost.risky_dist or (next_cost.risky_dist == next_node.cost.risky_dist and next_cost.ocean_dist < next_node.cost.ocean_dist) then
                     local astar_dist = 0
                     if end_node ~= nil then
-                        astar_dist = math.sqrt((next_node.x - end_node.x)^2 + (next_node.z - end_node.z)^2)
+                        astar_dist = ((next_node.x - end_node.x)^2 + (next_node.z - end_node.z)^2)^0.5
                     end
 
                     next_node.cost = next_cost
