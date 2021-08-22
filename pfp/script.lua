@@ -24,6 +24,7 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
     local start_z = nil
     local end_x = nil
     local end_z = nil
+    local bench = nil
     local i = 1
     while args[i] ~= nil do
         if args[i] == '-start' then
@@ -42,6 +43,13 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
                 return
             end
             i = i + 3
+        elseif args[i] == '-bench' then
+            bench = tonumber(args[i + 1])
+            if bench == nil or bench < 1 then
+                bench = 1
+            end
+            bench = math.floor(bench)
+            i = i + 2
         else
             server.announce(g_announce_name, string.format('error: invalid argument "%s"', args[i]), user_peer_id)
             return
@@ -115,7 +123,30 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
         plus_prev_z = plus_next_z
     end
 
-    server.announce(g_announce_name, string.format('PathfindOcean distance: %.1f\nPathfindPlus distance: %.1f', ocean_dist, plus_dist))
+    local msg = {}
+    table.insert(msg, string.format('PathfindOcean distance: %.1fm', ocean_dist))
+    table.insert(msg, string.format('PathfindPlus distance: %.1fm', plus_dist))
+
+    if bench ~= nil then
+        local ocean_time_start = server.getTimeMillisec()
+        for i = 1, bench do
+            server.pathfindOcean(matrix_start, matrix_end)
+        end
+        local ocean_time_end = server.getTimeMillisec()
+        local ocean_bench = (ocean_time_end - ocean_time_start)/bench
+
+        local plus_time_start = server.getTimeMillisec()
+        for i = 1, bench do
+            g_pf:pathfindOcean(matrix_start, matrix_end)
+        end
+        local plus_time_end = server.getTimeMillisec()
+        local plus_bench = (plus_time_end - plus_time_start)/bench
+
+        table.insert(msg, string.format('PathfindOcean time: %.1fms/op', ocean_bench))
+        table.insert(msg, string.format('PathfindPlus time: %.1fms/op', plus_bench))
+    end
+
+    server.announce(g_announce_name, table.concat(msg, '\n'))
 end
 
 function onCreate(is_world_create)
