@@ -24,7 +24,6 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
     local start_z = nil
     local end_x = nil
     local end_z = nil
-    local bench = nil
     local i = 1
     while args[i] ~= nil do
         if args[i] == '-start' then
@@ -43,13 +42,6 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
                 return
             end
             i = i + 3
-        elseif args[i] == '-bench' then
-            bench = tonumber(args[i + 1])
-            if bench == nil or bench < 1 then
-                bench = 1
-            end
-            bench = math.floor(bench)
-            i = i + 2
         else
             server.announce(g_announce_name, string.format('error: invalid argument "%s"', args[i]), user_peer_id)
             return
@@ -73,12 +65,22 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
 
     local matrix_start = matrix.translation(start_x, 0, start_z)
     local matrix_end = matrix.translation(end_x, 0, end_z)
+
+    local ocean_time_start = server.getTimeMillisec()
+    local ocean_path_list = server.pathfindOcean(matrix_start, matrix_end)
+    local ocean_time_end = server.getTimeMillisec()
+    local ocean_bench = ocean_time_end - ocean_time_start
+
+    local plus_time_start = server.getTimeMillisec()
+    local plus_path_list = g_pf:pathfindOcean(matrix_start, matrix_end)
+    local plus_time_end = server.getTimeMillisec()
+    local plus_bench = plus_time_end - plus_time_start
+
     server.removeMapObject(user_peer_id, g_savedata['ui_id'])
     server.removeMapLine(user_peer_id, g_savedata['ui_id'])
     server.addMapObject(user_peer_id, g_savedata['ui_id'], 0, 1, start_x, start_z, 0, 0, 0, 0, 'start', 0, 'PathfindPlus')
     server.addMapObject(user_peer_id, g_savedata['ui_id'], 0, 0, end_x, end_z, 0, 0, 0, 0, 'end', 0, 'PathfindPlus')
 
-    local ocean_path_list = server.pathfindOcean(matrix_start, matrix_end)
     local ocean_dist = 0
     local ocean_prev_x = start_x
     local ocean_prev_z = start_z
@@ -104,7 +106,6 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
         ocean_prev_z = ocean_next_z
     end
 
-    local plus_path_list = g_pf:pathfindOcean(matrix_start, matrix_end)
     local plus_dist = 0
     local plus_prev_x = start_x
     local plus_prev_z = start_z
@@ -124,28 +125,8 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
     end
 
     local msg = {}
-    table.insert(msg, string.format('PathfindOcean distance: %.1fm', ocean_dist))
-    table.insert(msg, string.format('PathfindPlus distance: %.1fm', plus_dist))
-
-    if bench ~= nil then
-        local ocean_time_start = server.getTimeMillisec()
-        for i = 1, bench do
-            server.pathfindOcean(matrix_start, matrix_end)
-        end
-        local ocean_time_end = server.getTimeMillisec()
-        local ocean_bench = (ocean_time_end - ocean_time_start)/bench
-
-        local plus_time_start = server.getTimeMillisec()
-        for i = 1, bench do
-            g_pf:pathfindOcean(matrix_start, matrix_end)
-        end
-        local plus_time_end = server.getTimeMillisec()
-        local plus_bench = (plus_time_end - plus_time_start)/bench
-
-        table.insert(msg, string.format('PathfindOcean time: %.1fms/op', ocean_bench))
-        table.insert(msg, string.format('PathfindPlus time: %.1fms/op', plus_bench))
-    end
-
+    table.insert(msg, string.format('PathfindOcean: %.1fms, %.1fkm', ocean_bench, ocean_dist/1000))
+    table.insert(msg, string.format('PathfindPlus: %.1fms, %.1fkm', plus_bench, plus_dist/1000))
     server.announce(g_announce_name, table.concat(msg, '\n'))
 end
 
