@@ -10,6 +10,7 @@ function test()
         {name = 'testCalcPath', fn = testCalcPath},
         {name = 'testGetPathList', fn = testGetPathList},
         {name = 'testReset', fn = testReset},
+        {name = 'testClean', fn = testClean},
         {name = 'testGetTileNode', fn = testGetTileNode},
         {name = 'testTestRectAndLineCollision', fn = testTestRectAndLineCollision},
         {name = 'testTestLineAndLineCollision', fn = testTestLineAndLineCollision},
@@ -278,9 +279,13 @@ function testGetOceanReachable(t)
 
     for case_idx, case in ipairs(case_tbl) do
         t.pf._node_tbl = deepCopy(case.input_node_tbl)
+        t.pf._dirty = true
         local actual_ret = t.pf:getOceanReachable(case.input_matrix_start, case.input_matrix_end)
         if not deepEqual(case.expected_node_tbl, t.pf._node_tbl) then
             error(string.format('case #%d: wrong node_tbl', case_idx))
+        end
+        if t.pf._dirty then
+            error(string.format('case #%d: wrong dirty (expected false, got %s)', case_idx, t.pf._dirty))
         end
         if actual_ret ~= case.expected_ret then
             error(string.format('case #%d: wrong return value (expected %s, got %s)', case_idx, case.expected_ret, actual_ret))
@@ -1288,9 +1293,13 @@ function testInitEdge(t)
 
     for case_idx, case in ipairs(case_tbl) do
         t.pf._node_tbl = deepCopy(case.input_node_tbl)
+        t.pf._dirty = true
         t.pf:_initEdge()
         if not deepEqual(case.expected_node_tbl, t.pf._node_tbl) then
             error(string.format('case #%d: wrong node_tbl', case_idx))
+        end
+        if t.pf._dirty then
+            error(string.format('case #%d: wrong dirty (expected false, got %s)', case_idx, t.pf._dirty))
         end
     end
 end
@@ -1564,6 +1573,7 @@ function testInitArea(t)
         t.pf._world_x2 = case.input_world_x2
         t.pf._world_z2 = case.input_world_z2
         t.pf._node_tbl = deepCopy(case.input_node_tbl)
+        t.pf._dirty = true
         t.pf:_initArea()
 
         local expected_node_tbl = deepCopy(case.expected_node_tbl)
@@ -1575,6 +1585,9 @@ function testInitArea(t)
 
         if not deepEqual(expected_node_tbl, t.pf._node_tbl) then
             error(string.format('case #%d: wrong node_tbl', case_idx))
+        end
+        if t.pf._dirty then
+            error(string.format('case #%d: wrong dirty (expected false, got %s)', case_idx, t.pf._dirty))
         end
     end
 end
@@ -1972,6 +1985,7 @@ function testSetNode(t)
         t.pf._world_z2 = case.input_world_z2
         t.pf._node_tbl = deepCopy(case.input_node_tbl)
         t.pf._temp_node_tbl = {}
+        t.pf._dirty = true
         local actual_node_key = t.pf:_setNode(case.input_x, case.input_z)
         if not deepEqual(case.expected_node_tbl, t.pf._node_tbl) then
             error(string.format('case #%d: wrong node_tbl', case_idx))
@@ -1981,6 +1995,9 @@ function testSetNode(t)
         end
         if actual_node_key ~= case.expected_node_key then
             error(string.format('case #%d: wrong node_key', case_idx))
+        end
+        if t.pf._dirty then
+            error(string.format('case #%d: wrong dirty (expected false, got %s)', case_idx, t.pf._dirty))
         end
     end
 end
@@ -2002,6 +2019,7 @@ function testCalcPath(t)
             },
             input_start_node_key = nil,
             input_end_node_key = nil,
+            input_dirty = true,
             expected_node_tbl = {
                 [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
@@ -2040,6 +2058,7 @@ function testCalcPath(t)
             },
             input_start_node_key = t.pf:_getNodeKey(0, 0),
             input_end_node_key = nil,
+            input_dirty = false,
             expected_node_tbl = {
                 [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
@@ -2092,6 +2111,7 @@ function testCalcPath(t)
             },
             input_start_node_key = t.pf:_getNodeKey(0, 0),
             input_end_node_key = t.pf:_getNodeKey(0, 0),
+            input_dirty = false,
             expected_node_tbl = {
                 [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
@@ -2176,6 +2196,7 @@ function testCalcPath(t)
             },
             input_start_node_key = t.pf:_getNodeKey(0, 0),
             input_end_node_key = t.pf:_getNodeKey(0, 3),
+            input_dirty = false,
             expected_node_tbl = {
                 [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
@@ -2288,6 +2309,7 @@ function testCalcPath(t)
             },
             input_start_node_key = t.pf:_getNodeKey(0, 0),
             input_end_node_key = t.pf:_getNodeKey(0, 3),
+            input_dirty = false,
             expected_node_tbl = {
                 [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
@@ -2400,6 +2422,7 @@ function testCalcPath(t)
             },
             input_start_node_key = t.pf:_getNodeKey(0, 0),
             input_end_node_key = t.pf:_getNodeKey(0, 3),
+            input_dirty = false,
             expected_node_tbl = {
                 [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
@@ -2512,6 +2535,7 @@ function testCalcPath(t)
             },
             input_start_node_key = t.pf:_getNodeKey(0, 0),
             input_end_node_key = t.pf:_getNodeKey(0, 3),
+            input_dirty = false,
             expected_node_tbl = {
                 [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
@@ -2573,9 +2597,13 @@ function testCalcPath(t)
         t.pf._node_tbl = deepCopy(case.input_node_tbl)
         t.pf._start_node_key = case.input_start_node_key
         t.pf._end_node_key = case.input_end_node_key
+        t.pf._dirty = case.input_dirty
         t.pf:_calcPath()
         if not deepEqual(case.expected_node_tbl, t.pf._node_tbl) then
             error(string.format('case #%d: wrong node_tbl', case_idx))
+        end
+        if not t.pf._dirty then
+            error(string.format('case #%d: wrong dirty (expected true, got %s)', case_idx, t.pf._dirty))
         end
     end
 end
@@ -2751,6 +2779,7 @@ function testReset(t)
             },
             input_start_node_key = t.pf:_getNodeKey(0, 0),
             input_end_node_key = t.pf:_getNodeKey(0, 1),
+            input_dirty = true,
             expected_node_tbl = {
                 [t.pf:_getNodeKey(0, 0)] = {
                     x = 0,
@@ -2785,6 +2814,7 @@ function testReset(t)
         t.pf._temp_node_tbl = deepCopy(case.input_temp_node_tbl)
         t.pf._start_node_key = case.input_start_node_key
         t.pf._end_node_key = case.input_end_node_key
+        t.pf._dirty = case.input_dirty
         t.pf:_reset()
         if not deepEqual(case.expected_node_tbl, t.pf._node_tbl) then
             error(string.format('case #%d: wrong node_tbl', case_idx))
@@ -2797,6 +2827,94 @@ function testReset(t)
         end
         if t.pf._end_node_key ~= nil then
             error(string.format('case #%d: wrong end_node_key (expected nil, got %s)', case_idx, t.pf._end_node_key))
+        end
+        if t.pf._dirty then
+            error(string.format('case #%d: wrong dirty (expected false, got %s)', case_idx, t.pf._dirty))
+        end
+    end
+end
+
+function testClean(t)
+    local case_tbl = {
+        {
+            input_node_tbl = {},
+            input_dirty = false,
+            expected_node_tbl = {},
+            expected_dirty = false,
+        },
+        {
+            input_node_tbl = {},
+            input_dirty = true,
+            expected_node_tbl = {},
+            expected_dirty = false,
+        },
+        {
+            input_node_tbl = {
+                [t.pf:_getNodeKey(0, 0)] = {
+                    x = 0,
+                    z = 0,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = t.pf:_getNodeKey(0, 0),
+                    visited = 'dummy',
+                    cost = 'dummy',
+                    prev_key = 'dummy',
+                },
+            },
+            input_dirty = false,
+            expected_node_tbl = {
+                [t.pf:_getNodeKey(0, 0)] = {
+                    x = 0,
+                    z = 0,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = t.pf:_getNodeKey(0, 0),
+                    visited = 'dummy',
+                    cost = 'dummy',
+                    prev_key = 'dummy',
+                },
+            },
+            expected_dirty = false,
+        },
+        {
+            input_node_tbl = {
+                [t.pf:_getNodeKey(0, 0)] = {
+                    x = 0,
+                    z = 0,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = t.pf:_getNodeKey(0, 0),
+                    visited = 'dummy',
+                    cost = 'dummy',
+                    prev_key = 'dummy',
+                },
+            },
+            input_dirty = true,
+            expected_node_tbl = {
+                [t.pf:_getNodeKey(0, 0)] = {
+                    x = 0,
+                    z = 0,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = t.pf:_getNodeKey(0, 0),
+                    visited = false,
+                    cost = nil,
+                    prev_key = nil,
+                },
+            },
+            expected_dirty = false,
+        },
+    }
+
+    for case_idx, case in ipairs(case_tbl) do
+        t.pf._node_tbl = deepCopy(case.input_node_tbl)
+        t.pf._dirty = case.input_dirty
+        t.pf:_clean()
+        if not deepEqual(case.expected_node_tbl, t.pf._node_tbl) then
+            error(string.format('case #%d: wrong node_tbl', case_idx))
+        end
+        if t.pf._dirty ~= case.expected_dirty then
+            error(string.format('case #%d: wrong dirty (expected %s, got %s)', case_idx, case.expected_dirty, t.pf._dirty))
         end
     end
 end

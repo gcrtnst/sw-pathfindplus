@@ -154,6 +154,7 @@ function buildPathfinder()
         _temp_node_tbl = {},
         _start_node_key = nil,
         _end_node_key = nil,
+        _dirty = false,
     }
 
     function pf:pathfindOcean(matrix_start, matrix_end)
@@ -201,6 +202,7 @@ function buildPathfinder()
         self._temp_node_tbl = {}
         self._start_node_key = nil
         self._end_node_key = nil
+        self._dirty = false
 
         for tile_x = self._world_x1 - self._tile_size, self._world_x2 + self._tile_size, self._tile_size do
             for tile_z = self._world_z1 - self._tile_size, self._world_z2 + self._tile_size, self._tile_size do
@@ -303,6 +305,8 @@ function buildPathfinder()
     end
 
     function pf:_setNode(x, z)
+        self:_clean()
+
         local this_node_key = self:_getNodeKey(x, z)
         if self._node_tbl[this_node_key] ~= nil then
             return this_node_key
@@ -371,11 +375,8 @@ function buildPathfinder()
     end
 
     function pf:_calcPath()
-        for _, node in pairs(self._node_tbl) do
-            node.visited = false
-            node.cost = nil
-            node.prev_key = nil
-        end
+        self:_clean()
+        self._dirty = true
 
         if self._node_tbl[self._start_node_key] == nil then
             return
@@ -433,6 +434,7 @@ function buildPathfinder()
     end
 
     function pf:_reset()
+        pf:_clean()
         self._start_node_key = nil
         self._end_node_key = nil
 
@@ -443,12 +445,19 @@ function buildPathfinder()
             end
         end
         self._temp_node_tbl = {}
+    end
+
+    function pf:_clean()
+        if not self._dirty then
+            return
+        end
 
         for _, node in pairs(self._node_tbl) do
             node.visited = false
             node.cost = nil
             node.prev_key = nil
         end
+        self._dirty = false
     end
 
     function pf:_getTileNode(x, z)
