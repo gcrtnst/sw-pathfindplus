@@ -351,23 +351,20 @@ function buildPathfinder()
             tile_node.edge_tbl[this_node_key] = cost
         end
 
-        for next_node_key, next_node in pairs(self._node_tbl) do
-            if next_node_key ~= this_node_key and not self:_testRectAndLineCollision(
-                self._world_x1 - self._tile_size/2,
-                self._world_z1 - self._tile_size/2,
-                self._world_x2 + self._tile_size/2,
-                self._world_z2 + self._tile_size/2,
-                this_node.x,
-                this_node.z,
-                next_node.x,
-                next_node.z
-            ) then
-                local cost = {
-                    ocean_dist = ((next_node.x - this_node.x)^2 + (next_node.z - this_node.z)^2)^0.5,
-                    risky_dist = 0,
-                }
-                this_node.edge_tbl[next_node_key] = cost
-                next_node.edge_tbl[this_node_key] = cost
+        local rect_x1 = self._world_x1 - self._tile_size/2
+        local rect_z1 = self._world_z1 - self._tile_size/2
+        local rect_x2 = self._world_x2 + self._tile_size/2
+        local rect_z2 = self._world_z2 + self._tile_size/2
+        if this_node.x <= rect_x1 or rect_x2 <= this_node.x or this_node.z <= rect_z1 or rect_z2 <= this_node.z then
+            for next_node_key, next_node in pairs(self._node_tbl) do
+                if next_node_key ~= this_node_key and not self:_testRectAndLineCollision(rect_x1, rect_z1, rect_x2, rect_z2, this_node.x, this_node.z, next_node.x, next_node.z) then
+                    local cost = {
+                        ocean_dist = ((next_node.x - this_node.x)^2 + (next_node.z - this_node.z)^2)^0.5,
+                        risky_dist = 0,
+                    }
+                    this_node.edge_tbl[next_node_key] = cost
+                    next_node.edge_tbl[this_node_key] = cost
+                end
             end
         end
 
