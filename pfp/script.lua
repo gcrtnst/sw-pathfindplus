@@ -435,11 +435,12 @@ function buildPathfinder()
         self._start_node_key = nil
         self._end_node_key = nil
 
-        for temp_node_key, _ in pairs(self._temp_node_tbl) do
-            self._node_tbl[temp_node_key] = nil
-            for _, node in pairs(self._node_tbl) do
+        for temp_node_key, temp_node in pairs(self._temp_node_tbl) do
+            for node_key, _ in pairs(temp_node.edge_tbl) do
+                local node = self._node_tbl[node_key]
                 node.edge_tbl[temp_node_key] = nil
             end
+            self._node_tbl[temp_node_key] = nil
         end
         self._temp_node_tbl = {}
     end
