@@ -154,7 +154,6 @@ function buildPathfinder()
         _temp_node_tbl = {},
         _start_node_key = nil,
         _end_node_key = nil,
-        _dirty = false,
     }
 
     function pf:pathfindOcean(matrix_start, matrix_end)
@@ -202,7 +201,6 @@ function buildPathfinder()
         self._temp_node_tbl = {}
         self._start_node_key = nil
         self._end_node_key = nil
-        self._dirty = false
 
         for tile_x = self._world_x1 - self._tile_size, self._world_x2 + self._tile_size, self._tile_size do
             for tile_z = self._world_z1 - self._tile_size, self._world_z2 + self._tile_size, self._tile_size do
@@ -214,6 +212,7 @@ function buildPathfinder()
                     is_ocean = is_success,
                     edge_tbl = {},
                     area_key = nil,
+                    dirty = false,
                     visited = false,
                     cost = nil,
                     prev_key = nil,
@@ -318,6 +317,7 @@ function buildPathfinder()
             is_ocean = true,
             edge_tbl = {},
             area_key = self:_getNodeKey(-1/0, -1/0),
+            dirty = false,
             visited = false,
             cost = nil,
             prev_key = nil,
@@ -372,13 +372,12 @@ function buildPathfinder()
     end
 
     function pf:_calcPath()
-        self:_clean()
-        self._dirty = true
-
-        if self._node_tbl[self._start_node_key] == nil then
+        local start_node = self._node_tbl[self._start_node_key]
+        if start_node == nil then
             return
         end
-        self._node_tbl[self._start_node_key].cost = {ocean_dist = 0, risky_dist = 0}
+        start_node.dirty = true
+        start_node.cost = {ocean_dist = 0, risky_dist = 0}
         local end_node = self._node_tbl[self._end_node_key]
 
         local heap = {}
@@ -409,6 +408,7 @@ function buildPathfinder()
                         astar_dist = ((next_node.x - end_node.x)^2 + (next_node.z - end_node.z)^2)^0.5
                     end
 
+                    next_node.dirty = true
                     next_node.cost = next_cost
                     next_node.prev_key = this_node_key
                     self:_heapPush(heap, next_node.cost.risky_dist, next_node.cost.ocean_dist + astar_dist, next_node_key)
@@ -446,16 +446,35 @@ function buildPathfinder()
     end
 
     function pf:_clean()
-        if not self._dirty then
+        if self._start_node_key == nil then
             return
         end
 
-        for _, node in pairs(self._node_tbl) do
-            node.visited = false
-            node.cost = nil
-            node.prev_key = nil
+        local start_node = self._node_tbl[self._start_node_key]
+        if not start_node.dirty then
+            return
         end
-        self._dirty = false
+
+        local queue = {[self._start_node_key] = true}
+        while true do
+            local this_node_key = next(queue)
+            if this_node_key == nil then
+                break
+            end
+            queue[this_node_key] = nil
+
+            local this_node = self._node_tbl[this_node_key]
+            this_node.dirty = false
+            this_node.visited = false
+            this_node.cost = nil
+            this_node.prev_key = nil
+            for next_node_key, _ in pairs(this_node.edge_tbl) do
+                local next_node = self._node_tbl[next_node_key]
+                if next_node.dirty then
+                    queue[next_node_key] = true
+                end
+            end
+        end
     end
 
     function pf:_getTileNode(x, z)
