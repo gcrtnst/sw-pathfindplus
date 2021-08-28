@@ -151,7 +151,7 @@ function buildPathfinder()
         _world_z2 = 130000,
         _tile_size = 1000,
         _node_tbl = {},
-        _temp_node_tbl = {},
+        _temp_node_grp = {},
         _start_node_key = nil,
         _end_node_key = nil,
     }
@@ -198,7 +198,7 @@ function buildPathfinder()
 
     function pf:_initNode()
         self._node_tbl = {}
-        self._temp_node_tbl = {}
+        self._temp_node_grp = {}
         self._start_node_key = nil
         self._end_node_key = nil
 
@@ -323,7 +323,7 @@ function buildPathfinder()
             prev_key = nil,
         }
         self._node_tbl[this_node_key] = this_node
-        self._temp_node_tbl[this_node_key] = this_node
+        self._temp_node_grp[this_node_key] = true
 
         local tile_node = self:_getTileNode(x, z)
         if tile_node ~= nil and (tile_node.x ~= this_node.x or tile_node.z ~= this_node.z) then
@@ -404,7 +404,8 @@ function buildPathfinder()
             end
         end
 
-        for next_node_key, next_node in pairs(self._temp_node_tbl) do
+        for next_node_key, _ in pairs(self._temp_node_grp) do
+            local next_node = self._node_tbl[next_node_key]
             if next_node_key ~= this_node_key and not self:_testRectAndLineCollision(rect_x1, rect_z1, rect_x2, rect_z2, this_node.x, this_node.z, next_node.x, next_node.z) then
                 local cost = {
                     ocean_dist = ((next_node.x - this_node.x)^2 + (next_node.z - this_node.z)^2)^0.5,
@@ -482,14 +483,15 @@ function buildPathfinder()
         self._start_node_key = nil
         self._end_node_key = nil
 
-        for temp_node_key, temp_node in pairs(self._temp_node_tbl) do
+        for temp_node_key, _ in pairs(self._temp_node_grp) do
+            local temp_node = self._node_tbl[temp_node_key]
             for node_key, _ in pairs(temp_node.edge_tbl) do
                 local node = self._node_tbl[node_key]
                 node.edge_tbl[temp_node_key] = nil
             end
             self._node_tbl[temp_node_key] = nil
         end
-        self._temp_node_tbl = {}
+        self._temp_node_grp = {}
     end
 
     function pf:_clean()
