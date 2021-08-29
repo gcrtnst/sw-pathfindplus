@@ -15,9 +15,11 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
     end
     server.announce(player_name, table.concat({g_cmd, ...}, ' '), user_peer_id)
 
-    local args = {...}
-    if args[#args] == '' then
-        args[#args] = nil
+    local args = {}
+    for _, s in ipairs({...}) do
+        if s ~= '' then
+            table.insert(args, s)
+        end
     end
 
     local start_x = nil
