@@ -2,6 +2,7 @@
 
 function test()
     local test_tbl = {
+        {name = "testPathfindOcean", fn = testPathfindOcean},
         {name = "testGetOceanReachable", fn = testGetOceanReachable},
         {name = "testInitNode", fn = testInitNode},
         {name = "testInitEdge", fn = testInitEdge},
@@ -26,6 +27,88 @@ function test()
             io.write(string.format("     %s\n", err))
         else
             io.write(string.format("PASS %s\n", test.name))
+        end
+    end
+end
+
+function testPathfindOcean(t)
+    local case_tbl = {
+        {
+            input_world_x1 = 0,
+            input_world_z1 = 0,
+            input_world_x2 = 0,
+            input_world_z2 = 0,
+            input_node_tbl = {
+                [t.pf:_getNodeKey(0, -1000)] = {
+                    x = 0,
+                    z = -1000,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = t.pf:_getNodeKey(-1/0, -1/0),
+                },
+                [t.pf:_getNodeKey(0, 0)] = {
+                    x = 0,
+                    z = 0,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = t.pf:_getNodeKey(0, 0),
+                },
+            },
+            input_temp_node_grp = {
+                [t.pf:_getNodeKey(0, -1000)] = true,
+            },
+            input_calc_tbl = {
+                [t.pf:_getNodeKey(0, -1000)] = {
+                    visited = true,
+                    cost = {ocean_dist = 0, risky_dist = 0},
+                    prev_key = nil,
+                },
+            },
+            input_matrix_start = t.env.matrix.translation(-1, 0, -1),
+            input_matrix_end = t.env.matrix.translation(1, 0, 1),
+            expected_node_tbl = {
+                [t.pf:_getNodeKey(0, 0)] = {
+                    x = 0,
+                    z = 0,
+                    is_ocean = true,
+                    edge_tbl = {},
+                    area_key = t.pf:_getNodeKey(0, 0),
+                },
+            },
+            expected_path_list = {
+                {x = 1, z = 1},
+            },
+        },
+    }
+
+    for case_idx, case in ipairs(case_tbl) do
+        t.pf._world_x1 = case.input_world_x1
+        t.pf._world_z1 = case.input_world_z1
+        t.pf._world_x2 = case.input_world_x2
+        t.pf._world_z2 = case.input_world_z2
+        t.pf._node_tbl = deepCopy(case.input_node_tbl)
+        t.pf._temp_node_grp = deepCopy(case.input_temp_node_grp)
+        t.pf._start_node_key = "dummy"
+        t.pf._end_node_key = "dummy"
+        t.pf._calc_tbl = deepCopy(case.input_calc_tbl)
+        local actual_path_list = t.pf:pathfindOcean(case.input_matrix_start, case.input_matrix_end)
+        if not deepEqual(case.expected_node_tbl, t.pf._node_tbl) then
+            error(string.format("case #%d: wrong node_tbl", case_idx))
+        end
+        if not deepEqual({}, t.pf._temp_node_grp) then
+            error(string.format("case #%d: temp_node_grp not empty", case_idx))
+        end
+        if t.pf._start_node_key ~= nil then
+            error(string.format("case #%d: wrong start_node_key (expected nil, got %s)", case_idx, t.pf._start_node_key))
+        end
+        if t.pf._end_node_key ~= nil then
+            error(string.format("case #%d: wrong end_node_key (expected nil, got %s)", case_idx, t.pf._end_node_key))
+        end
+        if not deepEqual({}, t.pf._calc_tbl) then
+            error(string.format("case #%d: calc_tbl not empty", case_idx))
+        end
+        if not deepEqual(case.expected_path_list, actual_path_list) then
+            error(string.format("case #%d: wrong path_list", case_idx))
         end
     end
 end
