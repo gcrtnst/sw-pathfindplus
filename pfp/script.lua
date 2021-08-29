@@ -61,8 +61,8 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
         start_z = player_z
     end
     if end_x == nil or end_z == nil then
-        end_x = math.random(-77000, 65000)
-        end_z = math.random(-65000, 131000)
+        end_x = math.random(-96000, 82000)
+        end_z = math.random(-82000, 144000)
     end
 
     local matrix_start = matrix.translation(start_x, 0, start_z)
