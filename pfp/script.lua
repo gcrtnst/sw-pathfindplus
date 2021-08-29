@@ -154,6 +154,7 @@ function buildPathfinder()
         _temp_node_grp = {},
         _start_node_key = nil,
         _end_node_key = nil,
+        _calc_tbl = {},
     }
 
     function pf:pathfindOcean(matrix_start, matrix_end)
@@ -201,6 +202,7 @@ function buildPathfinder()
         self._temp_node_grp = {}
         self._start_node_key = nil
         self._end_node_key = nil
+        self._calc_tbl = {}
 
         for tile_x = self._world_x1 - self._tile_size, self._world_x2 + self._tile_size, self._tile_size do
             for tile_z = self._world_z1 - self._tile_size, self._world_z2 + self._tile_size, self._tile_size do
@@ -212,10 +214,6 @@ function buildPathfinder()
                     is_ocean = is_success,
                     edge_tbl = {},
                     area_key = nil,
-                    dirty = false,
-                    visited = false,
-                    cost = nil,
-                    prev_key = nil,
                 }
             end
         end
@@ -304,7 +302,7 @@ function buildPathfinder()
     end
 
     function pf:_setNode(x, z)
-        self:_clean()
+        self._calc_tbl = {}
 
         local this_node_key = self:_getNodeKey(x, z)
         if self._node_tbl[this_node_key] ~= nil then
@@ -317,10 +315,6 @@ function buildPathfinder()
             is_ocean = true,
             edge_tbl = {},
             area_key = self:_getNodeKey(-1/0, -1/0),
-            dirty = false,
-            visited = false,
-            cost = nil,
-            prev_key = nil,
         }
         self._node_tbl[this_node_key] = this_node
         self._temp_node_grp[this_node_key] = true
@@ -371,12 +365,17 @@ function buildPathfinder()
     end
 
     function pf:_calcPath()
-        local start_node = self._node_tbl[self._start_node_key]
-        if start_node == nil then
+        self._calc_tbl = {}
+
+        if self._start_node_key == nil then
             return
         end
-        start_node.dirty = true
-        start_node.cost = {ocean_dist = 0, risky_dist = 0}
+        self._calc_tbl[self._start_node_key] = {
+            visited = false,
+            cost = {ocean_dist = 0, risky_dist = 0},
+            prev_key = nil,
+        }
+
         local end_node = self._node_tbl[self._end_node_key]
 
         local heap = {}
@@ -386,31 +385,42 @@ function buildPathfinder()
             if this_node_key == nil then
                 break
             end
-            local this_node = self._node_tbl[this_node_key]
-            if this_node.visited then
+
+            local this_calc = self._calc_tbl[this_node_key]
+            if this_calc.visited then
                 goto continue
             end
-            this_node.visited = true
+            this_calc.visited = true
             if this_node_key == self._end_node_key then
                 break
             end
 
+            local this_node = self._node_tbl[this_node_key]
             for next_node_key, edge_cost in pairs(this_node.edge_tbl) do
-                local next_node = self._node_tbl[next_node_key]
+                local next_calc = self._calc_tbl[next_node_key]
+                if next_calc == nil then
+                    next_calc = {
+                        visited = false,
+                        cost = nil,
+                        prev_key = nil,
+                    }
+                    self._calc_tbl[next_node_key] = next_calc
+                end
+
                 local next_cost = {
-                    ocean_dist = this_node.cost.ocean_dist + edge_cost.ocean_dist,
-                    risky_dist = this_node.cost.risky_dist + edge_cost.risky_dist,
+                    ocean_dist = this_calc.cost.ocean_dist + edge_cost.ocean_dist,
+                    risky_dist = this_calc.cost.risky_dist + edge_cost.risky_dist,
                 }
-                if next_node.cost == nil or next_cost.risky_dist < next_node.cost.risky_dist or (next_cost.risky_dist == next_node.cost.risky_dist and next_cost.ocean_dist < next_node.cost.ocean_dist) then
+                if next_calc.cost == nil or next_cost.risky_dist < next_calc.cost.risky_dist or (next_cost.risky_dist == next_calc.cost.risky_dist and next_cost.ocean_dist < next_calc.cost.ocean_dist) then
                     local astar_dist = 0
                     if end_node ~= nil then
+                        local next_node = self._node_tbl[next_node_key]
                         astar_dist = ((next_node.x - end_node.x)^2 + (next_node.z - end_node.z)^2)^0.5
                     end
 
-                    next_node.dirty = true
-                    next_node.cost = next_cost
-                    next_node.prev_key = this_node_key
-                    self:_heapPush(heap, next_node.cost.risky_dist, next_node.cost.ocean_dist + astar_dist, next_node_key)
+                    next_calc.cost = next_cost
+                    next_calc.prev_key = this_node_key
+                    self:_heapPush(heap, next_calc.cost.risky_dist, next_calc.cost.ocean_dist + astar_dist, next_node_key)
                 end
             end
 
@@ -420,19 +430,20 @@ function buildPathfinder()
 
     function pf:_getPathList()
         local path_list = {}
-        local this_node_key = self._end_node_key
-        while this_node_key ~= nil and this_node_key ~= self._start_node_key do
-            local this_node = self._node_tbl[this_node_key]
-            table.insert(path_list, 1, {x = this_node.x, z = this_node.z})
-            this_node_key = this_node.prev_key
+        local node_key = self._end_node_key
+        while node_key ~= nil and node_key ~= self._start_node_key do
+            local node = self._node_tbl[node_key]
+            local calc = self._calc_tbl[node_key]
+            table.insert(path_list, 1, {x = node.x, z = node.z})
+            node_key = calc.prev_key
         end
         return path_list
     end
 
     function pf:_reset()
-        pf:_clean()
         self._start_node_key = nil
         self._end_node_key = nil
+        self._calc_tbl = {}
 
         for temp_node_key, _ in pairs(self._temp_node_grp) do
             local temp_node = self._node_tbl[temp_node_key]
@@ -443,38 +454,6 @@ function buildPathfinder()
             self._node_tbl[temp_node_key] = nil
         end
         self._temp_node_grp = {}
-    end
-
-    function pf:_clean()
-        if self._start_node_key == nil then
-            return
-        end
-
-        local start_node = self._node_tbl[self._start_node_key]
-        if not start_node.dirty then
-            return
-        end
-
-        local queue = {[self._start_node_key] = true}
-        while true do
-            local this_node_key = next(queue)
-            if this_node_key == nil then
-                break
-            end
-            queue[this_node_key] = nil
-
-            local this_node = self._node_tbl[this_node_key]
-            this_node.dirty = false
-            this_node.visited = false
-            this_node.cost = nil
-            this_node.prev_key = nil
-            for next_node_key, _ in pairs(this_node.edge_tbl) do
-                local next_node = self._node_tbl[next_node_key]
-                if next_node.dirty then
-                    queue[next_node_key] = true
-                end
-            end
-        end
     end
 
     function pf:_getTileNode(x, z)
