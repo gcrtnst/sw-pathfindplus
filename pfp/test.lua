@@ -2,30 +2,30 @@
 
 function test()
     local test_tbl = {
-        {name = 'testGetOceanReachable', fn = testGetOceanReachable},
-        {name = 'testInitNode', fn = testInitNode},
-        {name = 'testInitEdge', fn = testInitEdge},
-        {name = 'testInitArea', fn = testInitArea},
-        {name = 'testSetNode', fn = testSetNode},
-        {name = 'testCalcPath', fn = testCalcPath},
-        {name = 'testGetPathList', fn = testGetPathList},
-        {name = 'testReset', fn = testReset},
-        {name = 'testGetTileNode', fn = testGetTileNode},
-        {name = 'testTestRectAndLineCollision', fn = testTestRectAndLineCollision},
-        {name = 'testTestLineAndLineCollision', fn = testTestLineAndLineCollision},
-        {name = 'testHeap', fn = testHeap},
-        {name = 'testHeapPush', fn = testHeapPush},
-        {name = 'testHeapPop', fn = testHeapPop},
+        {name = "testGetOceanReachable", fn = testGetOceanReachable},
+        {name = "testInitNode", fn = testInitNode},
+        {name = "testInitEdge", fn = testInitEdge},
+        {name = "testInitArea", fn = testInitArea},
+        {name = "testSetNode", fn = testSetNode},
+        {name = "testCalcPath", fn = testCalcPath},
+        {name = "testGetPathList", fn = testGetPathList},
+        {name = "testReset", fn = testReset},
+        {name = "testGetTileNode", fn = testGetTileNode},
+        {name = "testTestRectAndLineCollision", fn = testTestRectAndLineCollision},
+        {name = "testTestLineAndLineCollision", fn = testTestLineAndLineCollision},
+        {name = "testHeap", fn = testHeap},
+        {name = "testHeapPush", fn = testHeapPush},
+        {name = "testHeapPop", fn = testHeapPop},
     }
 
     for _, test in ipairs(test_tbl) do
         local t = buildT()
         local is_success, err = pcall(test.fn, t)
         if not is_success then
-            io.write(string.format('FAIL %s\n', test.name))
-            io.write(string.format('     %s\n', err))
+            io.write(string.format("FAIL %s\n", test.name))
+            io.write(string.format("     %s\n", err))
         else
-            io.write(string.format('PASS %s\n', test.name))
+            io.write(string.format("PASS %s\n", test.name))
         end
     end
 end
@@ -132,19 +132,19 @@ function testGetOceanReachable(t)
     for case_idx, case in ipairs(case_tbl) do
         t.pf._node_tbl = deepCopy(case.input_node_tbl)
         t.pf._start_node_key = nil
-        t.pf._end_node_key = 'dummy'
+        t.pf._end_node_key = "dummy"
         local actual_ret = t.pf:getOceanReachable(case.input_matrix_start, case.input_matrix_end)
         if not deepEqual(case.input_node_tbl, t.pf._node_tbl) then
-            error(string.format('case #%d: wrong node_tbl', case_idx))
+            error(string.format("case #%d: wrong node_tbl", case_idx))
         end
         if t.pf._start_node_key ~= nil then
-            error(string.format('case #%d: start_node_key not nil', case_idx))
+            error(string.format("case #%d: start_node_key not nil", case_idx))
         end
         if t.pf._end_node_key ~= nil then
-            error(string.format('case #%d: end_node_key not nil', case_idx))
+            error(string.format("case #%d: end_node_key not nil", case_idx))
         end
         if actual_ret ~= case.expected_ret then
-            error(string.format('case #%d: wrong return value (expected %s, got %s)', case_idx, case.expected_ret, actual_ret))
+            error(string.format("case #%d: wrong return value (expected %s, got %s)", case_idx, case.expected_ret, actual_ret))
         end
     end
 end
@@ -383,10 +383,10 @@ function testInitNode(t)
             input_tile_tbl = {
                 [0] = {
                     [0] = {
-                        ['name'] = 'island',
-                        ['sea_floor'] = -30,
-                        ['cost'] = 0,
-                        ['purchased'] = false,
+                        ["name"] = "island",
+                        ["sea_floor"] = -30,
+                        ["cost"] = 0,
+                        ["purchased"] = false,
                     },
                 },
             },
@@ -468,26 +468,26 @@ function testInitNode(t)
         t.pf._world_z1 = case.input_world_z1
         t.pf._world_x2 = case.input_world_x2
         t.pf._world_z2 = case.input_world_z2
-        t.pf._node_tbl = 'dummy'
-        t.pf._temp_node_grp = 'dummy'
-        t.pf._start_node_key = 'dummy'
-        t.pf._end_node_key = 'dummy'
-        t.pf._calc_tbl = 'dummy'
+        t.pf._node_tbl = "dummy"
+        t.pf._temp_node_grp = "dummy"
+        t.pf._start_node_key = "dummy"
+        t.pf._end_node_key = "dummy"
+        t.pf._calc_tbl = "dummy"
         t.pf:_initNode()
         if not deepEqual(case.expected_node_tbl, t.pf._node_tbl) then
-            error(string.format('case #%d: wrong node_tbl', case_idx))
+            error(string.format("case #%d: wrong node_tbl", case_idx))
         end
         if not deepEqual({}, t.pf._temp_node_grp) then
-            error(string.format('case #%d: temp_node_grp not empty', case_idx))
+            error(string.format("case #%d: temp_node_grp not empty", case_idx))
         end
         if t.pf._start_node_key ~= nil then
-            error(string.format('case #%d: start_node_key not nil', case_idx))
+            error(string.format("case #%d: start_node_key not nil", case_idx))
         end
         if t.pf._end_node_key ~= nil then
-            error(string.format('case #5d: end_node_key not nil', case_idx))
+            error(string.format("case #5d: end_node_key not nil", case_idx))
         end
         if not deepEqual({}, t.pf._calc_tbl) then
-            error(string.format('case #%d: calc_tbl not empty', case_idx))
+            error(string.format("case #%d: calc_tbl not empty", case_idx))
         end
     end
 end
@@ -889,16 +889,16 @@ function testInitEdge(t)
     for case_idx, case in ipairs(case_tbl) do
         t.pf._node_tbl = deepCopy(case.input_node_tbl)
         t.pf._start_node_key = nil
-        t.pf._end_node_key = 'dummy'
+        t.pf._end_node_key = "dummy"
         t.pf:_initEdge()
         if not deepEqual(case.expected_node_tbl, t.pf._node_tbl) then
-            error(string.format('case #%d: wrong node_tbl', case_idx))
+            error(string.format("case #%d: wrong node_tbl", case_idx))
         end
         if t.pf._start_node_key ~= nil then
-            error(string.format('case #%d: start_node_key not nil', case_idx))
+            error(string.format("case #%d: start_node_key not nil", case_idx))
         end
         if t.pf._end_node_key ~= nil then
-            error(string.format('case #%d: end_node_key not nil', case_idx))
+            error(string.format("case #%d: end_node_key not nil", case_idx))
         end
     end
 end
@@ -1094,7 +1094,7 @@ function testInitArea(t)
         t.pf._world_z2 = case.input_world_z2
         t.pf._node_tbl = deepCopy(case.input_node_tbl)
         t.pf._start_node_key = nil
-        t.pf._end_node_key = 'dummy'
+        t.pf._end_node_key = "dummy"
         t.pf:_initArea()
 
         local expected_node_tbl = deepCopy(case.expected_node_tbl)
@@ -1105,13 +1105,13 @@ function testInitArea(t)
         end
 
         if not deepEqual(expected_node_tbl, t.pf._node_tbl) then
-            error(string.format('case #%d: wrong node_tbl', case_idx))
+            error(string.format("case #%d: wrong node_tbl", case_idx))
         end
         if t.pf._start_node_key ~= nil then
-            error(string.format('case #%d: start_node_key not nil', case_idx))
+            error(string.format("case #%d: start_node_key not nil", case_idx))
         end
         if t.pf._end_node_key ~= nil then
-            error(string.format('case #%d: end_node_key not nil', case_idx))
+            error(string.format("case #%d: end_node_key not nil", case_idx))
         end
     end
 end
@@ -1472,19 +1472,19 @@ function testSetNode(t)
         t.pf._world_z2 = case.input_world_z2
         t.pf._node_tbl = deepCopy(case.input_node_tbl)
         t.pf._temp_node_grp = {}
-        t.pf._calc_tbl = 'dummy'
+        t.pf._calc_tbl = "dummy"
         local actual_node_key = t.pf:_setNode(case.input_x, case.input_z)
         if not deepEqual(case.expected_node_tbl, t.pf._node_tbl) then
-            error(string.format('case #%d: wrong node_tbl', case_idx))
+            error(string.format("case #%d: wrong node_tbl", case_idx))
         end
         if not deepEqual(case.expected_temp_node_grp, t.pf._temp_node_grp) then
-            error(string.format('case #%d: wrong temp_node_grp', case_idx))
+            error(string.format("case #%d: wrong temp_node_grp", case_idx))
         end
         if not deepEqual({}, t.pf._calc_tbl) then
-            error(string.format('case #%d: calc_tbl not empty', case_idx))
+            error(string.format("case #%d: calc_tbl not empty", case_idx))
         end
         if actual_node_key ~= case.expected_node_key then
-            error(string.format('case #%d: wrong node_key', case_idx))
+            error(string.format("case #%d: wrong node_key", case_idx))
         end
     end
 end
@@ -2251,13 +2251,13 @@ function testCalcPath(t)
         t.pf._node_tbl = deepCopy(case.input_node_tbl)
         t.pf._start_node_key = case.input_start_node_key
         t.pf._end_node_key = case.input_end_node_key
-        t.pf._calc_tbl = 'dummy'
+        t.pf._calc_tbl = "dummy"
         t.pf:_calcPath()
         if not deepEqual(case.expected_node_tbl, t.pf._node_tbl) then
-            error(string.format('case #%d: wrong node_tbl', case_idx))
+            error(string.format("case #%d: wrong node_tbl", case_idx))
         end
         if not deepEqual(case.expected_calc_tbl, t.pf._calc_tbl) then
-            error(string.format('case #%d: wrong calc_tbl', case_idx))
+            error(string.format("case #%d: wrong calc_tbl", case_idx))
         end
     end
 end
@@ -2384,7 +2384,7 @@ function testGetPathList(t)
         t.pf._calc_tbl = deepCopy(case.input_calc_tbl)
         local actual = t.pf:_getPathList()
         if not deepEqual(case.expected, actual) then
-            error(string.format('case #%d: wrong path_list', case_idx))
+            error(string.format("case #%d: wrong path_list", case_idx))
         end
     end
 end
@@ -2453,24 +2453,24 @@ function testReset(t)
     for case_idx, case in ipairs(case_tbl) do
         t.pf._node_tbl = deepCopy(case.input_node_tbl)
         t.pf._temp_node_grp = deepCopy(case.input_temp_node_grp)
-        t.pf._start_node_key = 'dummy'
-        t.pf._end_node_key = 'dummy'
-        t.pf._calc_tbl = 'dummy'
+        t.pf._start_node_key = "dummy"
+        t.pf._end_node_key = "dummy"
+        t.pf._calc_tbl = "dummy"
         t.pf:_reset()
         if not deepEqual(case.expected_node_tbl, t.pf._node_tbl) then
-            error(string.format('case #%d: wrong node_tbl', case_idx))
+            error(string.format("case #%d: wrong node_tbl", case_idx))
         end
         if not deepEqual({}, t.pf._temp_node_grp) then
-            error(string.format('case #%d: temp_node_grp not empty', case_idx))
+            error(string.format("case #%d: temp_node_grp not empty", case_idx))
         end
         if t.pf._start_node_key ~= nil then
-            error(string.format('case #%d: wrong start_node_key (expected nil, got %s)', case_idx, t.pf._start_node_key))
+            error(string.format("case #%d: wrong start_node_key (expected nil, got %s)", case_idx, t.pf._start_node_key))
         end
         if t.pf._end_node_key ~= nil then
-            error(string.format('case #%d: wrong end_node_key (expected nil, got %s)', case_idx, t.pf._end_node_key))
+            error(string.format("case #%d: wrong end_node_key (expected nil, got %s)", case_idx, t.pf._end_node_key))
         end
         if not deepEqual({}, t.pf._calc_tbl) then
-            error(string.format('case #%d: calc_tbl not empty', case_idx))
+            error(string.format("case #%d: calc_tbl not empty", case_idx))
         end
     end
 end
@@ -2537,7 +2537,7 @@ function testGetTileNode(t)
         t.pf._node_tbl = deepCopy(case.input_node_tbl)
         local actual = t.pf:_getTileNode(case.input_x, case.input_z)
         if not deepEqual(case.expected, actual) then
-            error(string.format('case #%d: wrong node', case_idx))
+            error(string.format("case #%d: wrong node", case_idx))
         end
     end
 end
@@ -2555,7 +2555,7 @@ function testTestRectAndLineCollision(t)
     for case_idx, case in ipairs(case_tbl) do
         local actual = t.pf:_testRectAndLineCollision(table.unpack(case.input_list))
         if case.expected ~= actual then
-            error(string.format('case #%d: expected %s, got %s', case_idx, case.expected, actual))
+            error(string.format("case #%d: expected %s, got %s", case_idx, case.expected, actual))
         end
     end
 end
@@ -2575,7 +2575,7 @@ function testTestLineAndLineCollision(t)
     for case_idx, case in ipairs(case_tbl) do
         local actual = t.pf:_testLineAndLineCollision(table.unpack(case.input_list))
         if case.expected ~= actual then
-            error(string.format('case #%d: expected %s, got %s', case_idx, case.expected, actual))
+            error(string.format("case #%d: expected %s, got %s", case_idx, case.expected, actual))
         end
     end
 end
@@ -2599,7 +2599,7 @@ function testHeap(t)
     end
 
     if not deepEqual(expected_list, actual_list) then
-        error('failed')
+        error("failed")
     end
 end
 
@@ -2788,7 +2788,7 @@ function testHeapPush(t)
         local heap = deepCopy(case.input_heap)
         t.pf:_heapPush(heap, case.input_cost1, case.input_cost2, case.input_key)
         if not deepEqual(case.expected_heap, heap) then
-            error(string.format('case #%d: wrong heap', case_idx))
+            error(string.format("case #%d: wrong heap", case_idx))
         end
     end
 end
@@ -3095,10 +3095,10 @@ function testHeapPop(t)
         local heap = deepCopy(case.input_heap)
         local actual_key = t.pf:_heapPop(heap)
         if not deepEqual(case.expected_heap, heap) then
-            error(string.format('case #%d: wrong heap', case_idx))
+            error(string.format("case #%d: wrong heap", case_idx))
         end
         if actual_key ~= case.expected_key then
-            error(string.format('case #%d: wrong key (expected %s, got %s)', case_idx, case.expected_key, actual_key))
+            error(string.format("case #%d: wrong key (expected %s, got %s)", case_idx, case.expected_key, actual_key))
         end
     end
 end
@@ -3106,7 +3106,7 @@ end
 function buildT()
     local cfg = {}
     local env = buildEnv(cfg)
-    loadfile('script.lua', 't', env)()
+    loadfile("script.lua", "t", env)()
     local pf = env.buildPathfinder()
     return {
         cfg = cfg,
@@ -3133,22 +3133,22 @@ function buildEnv(cfg)
 
     function env.server.getOceanTransform(mat, min_search_range, max_search_range)
         if min_search_range ~= 0 then
-            error(string.format('unsupported argument to min_search_range (0 expected, got "%s")', min_search_range))
+            error(string.format("unsupported argument to min_search_range (0 expected, got "%s")", min_search_range))
         end
         if max_search_range ~= 1 then
-            error(string.format('unsupported argument to max_search_range (1 expected, got "%s")', max_search_range))
+            error(string.format("unsupported argument to max_search_range (1 expected, got "%s")", max_search_range))
         end
 
         local mat_x, _, mat_z = env.matrix.position(mat)
         if mat_x%1 ~= 0 then
-            error(string.format('unsupported argument to mat_x (integer expected, got "%s")', mat_x))
+            error(string.format("unsupported argument to mat_x (integer expected, got "%s")", mat_x))
         end
         if mat_z%1 ~= 0 then
-            error(string.format('unsupported argument to mat_z (integer expected, got "%s")', mat_z))
+            error(string.format("unsupported argument to mat_z (integer expected, got "%s")", mat_z))
         end
 
         local tile = (((cfg or {}).tile_tbl or {})[mat_x] or {})[mat_z]
-        if tile ~= nil and tile['name'] ~= '' then
+        if tile ~= nil and tile["name"] ~= "" then
             return nil, false
         end
 
@@ -3156,14 +3156,14 @@ function buildEnv(cfg)
     end
 
     function env.matrix.translation(x, y, z)
-        if type(x) ~= 'number' then
-            error('bad argument to x (number expected, got %s)', type(x))
+        if type(x) ~= "number" then
+            error("bad argument to x (number expected, got %s)", type(x))
         end
-        if type(y) ~= 'number' then
-            error('bad argument to y (number expected, got %s)', type(y))
+        if type(y) ~= "number" then
+            error("bad argument to y (number expected, got %s)", type(y))
         end
-        if type(z) ~= 'number' then
-            error('bad argument to z (number expected, got %s)', type(z))
+        if type(z) ~= "number" then
+            error("bad argument to z (number expected, got %s)", type(z))
         end
 
         return {
@@ -3179,9 +3179,9 @@ function buildEnv(cfg)
             mat[1] ~= 1 or mat[2] ~= 0 or mat[3] ~= 0 or mat[4] ~= 0 or
             mat[5] ~= 0 or mat[6] ~= 1 or mat[7] ~= 0 or mat[8] ~= 0 or
             mat[9] ~= 0 or mat[10] ~= 0 or mat[11] ~= 1 or mat[12] ~= 0 or
-            type(mat[13]) ~= 'number' or type(mat[14]) ~= 'number' or type(mat[15]) ~= 'number' or mat[16] ~= 1
+            type(mat[13]) ~= "number" or type(mat[14]) ~= "number" or type(mat[15]) ~= "number" or mat[16] ~= 1
         ) then
-            error('unsupported argument')
+            error("unsupported argument")
         end
         return mat[13], mat[14], mat[15]
     end
@@ -3190,7 +3190,7 @@ function buildEnv(cfg)
 end
 
 function deepEqual(expected, actual)
-    if type(expected) ~= 'table' or type(actual) ~= 'table' then
+    if type(expected) ~= "table" or type(actual) ~= "table" then
         return expected == actual
     end
 
@@ -3208,7 +3208,7 @@ function deepEqual(expected, actual)
 end
 
 function deepCopy(v)
-    if type(v) ~= 'table' then
+    if type(v) ~= "table" then
         return v
     end
 

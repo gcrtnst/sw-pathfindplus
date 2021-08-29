@@ -1,7 +1,7 @@
 -- SPDX-License-Identifier: Unlicense
 
-g_cmd = '?pathfind'
-g_announce_name = '[PathfindPlus]'
+g_cmd = "?pathfind"
+g_announce_name = "[PathfindPlus]"
 g_pf = nil
 
 function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...)
@@ -11,13 +11,13 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
 
     local player_name, is_success = server.getPlayerName(user_peer_id)
     if not is_success then
-        player_name = '<player>'
+        player_name = "<player>"
     end
-    server.announce(player_name, table.concat({g_cmd, ...}, ' '), user_peer_id)
+    server.announce(player_name, table.concat({g_cmd, ...}, " "), user_peer_id)
 
     local args = {}
     for _, s in ipairs({...}) do
-        if s ~= '' then
+        if s ~= "" then
             table.insert(args, s)
         end
     end
@@ -28,19 +28,19 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
     local end_z = nil
     local i = 1
     while args[i] ~= nil do
-        if args[i] == '-start' then
+        if args[i] == "-start" then
             start_x = tonumber(args[i + 1])
             start_z = tonumber(args[i + 2])
             if start_x == nil or start_z == nil then
-                server.announce(g_announce_name, 'error: invalid parameter for -start', user_peer_id)
+                server.announce(g_announce_name, "error: invalid parameter for -start", user_peer_id)
                 return
             end
             i = i + 3
-        elseif args[i] == '-end' then
+        elseif args[i] == "-end" then
             end_x = tonumber(args[i + 1])
             end_z = tonumber(args[i + 2])
             if end_x == nil or end_z == nil then
-                server.announce(g_announce_name, 'error: invalid parameter for -end', user_peer_id)
+                server.announce(g_announce_name, "error: invalid parameter for -end", user_peer_id)
                 return
             end
             i = i + 3
@@ -53,7 +53,7 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
     if start_x == nil or start_z == nil then
         local player_pos, is_success = server.getPlayerPos(user_peer_id)
         if not is_success then
-            server.announce(g_announce_name, 'error: failed to get player position', user_peer_id)
+            server.announce(g_announce_name, "error: failed to get player position", user_peer_id)
             return
         end
         local player_x, _, player_z = matrix.position(player_pos)
@@ -79,27 +79,27 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
     local plus_bench = plus_time_end - plus_time_start
     local plus_reachable = g_pf:getOceanReachable(matrix_start, matrix_end)
 
-    server.removeMapObject(user_peer_id, g_savedata['ui_id'])
-    server.removeMapLine(user_peer_id, g_savedata['ui_id'])
-    server.addMapObject(user_peer_id, g_savedata['ui_id'], 0, 1, start_x, start_z, 0, 0, 0, 0, 'start', 0, 'PathfindPlus')
-    server.addMapObject(user_peer_id, g_savedata['ui_id'], 0, 0, end_x, end_z, 0, 0, 0, 0, 'end', 0, 'PathfindPlus')
+    server.removeMapObject(user_peer_id, g_savedata["ui_id"])
+    server.removeMapLine(user_peer_id, g_savedata["ui_id"])
+    server.addMapObject(user_peer_id, g_savedata["ui_id"], 0, 1, start_x, start_z, 0, 0, 0, 0, "start", 0, "PathfindPlus")
+    server.addMapObject(user_peer_id, g_savedata["ui_id"], 0, 0, end_x, end_z, 0, 0, 0, 0, "end", 0, "PathfindPlus")
 
     local ocean_dist = 0
     local ocean_prev_x = start_x
     local ocean_prev_z = start_z
     for _, ocean_path in ipairs(ocean_path_list) do
-        local ocean_next_x = ocean_path['x']
-        local ocean_next_z = ocean_path['z']
+        local ocean_next_x = ocean_path["x"]
+        local ocean_next_z = ocean_path["z"]
         server.addMapLine(
             user_peer_id,
-            g_savedata['ui_id'],
+            g_savedata["ui_id"],
             matrix.translation(ocean_prev_x, 0, ocean_prev_z),
             matrix.translation(ocean_prev_x*0.75 + ocean_next_x*0.25, 0, ocean_prev_z*0.75 + ocean_next_z*0.25),
             1
         )
         server.addMapLine(
             user_peer_id,
-            g_savedata['ui_id'],
+            g_savedata["ui_id"],
             matrix.translation(ocean_prev_x*0.25 + ocean_next_x*0.75, 0, ocean_prev_z*0.25 + ocean_next_z*0.75),
             matrix.translation(ocean_next_x, 0, ocean_next_z),
             1
@@ -113,11 +113,11 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
     local plus_prev_x = start_x
     local plus_prev_z = start_z
     for _, plus_path in ipairs(plus_path_list) do
-        local plus_next_x = plus_path['x']
-        local plus_next_z = plus_path['z']
+        local plus_next_x = plus_path["x"]
+        local plus_next_z = plus_path["z"]
         server.addMapLine(
             user_peer_id,
-            g_savedata['ui_id'],
+            g_savedata["ui_id"],
             matrix.translation(plus_prev_x, 0, plus_prev_z),
             matrix.translation(plus_next_x, 0, plus_next_z),
             1
@@ -128,17 +128,17 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
     end
 
     local msg = {}
-    table.insert(msg, string.format('PathfindOcean: %dms, %.1fkm', ocean_bench, ocean_dist/1000))
-    table.insert(msg, string.format('PathfindPlus: %dms, %.1fkm%s', plus_bench, plus_dist/1000, plus_reachable and '' or ' [unreachable]'))
-    server.announce(g_announce_name, table.concat(msg, '\n'))
+    table.insert(msg, string.format("PathfindOcean: %dms, %.1fkm", ocean_bench, ocean_dist/1000))
+    table.insert(msg, string.format("PathfindPlus: %dms, %.1fkm%s", plus_bench, plus_dist/1000, plus_reachable and "" or " [unreachable]"))
+    server.announce(g_announce_name, table.concat(msg, "\n"))
 end
 
 function onCreate(is_world_create)
     local version = 0
-    if type(g_savedata) ~= 'table' or g_savedata['version'] ~= version then
+    if type(g_savedata) ~= "table" or g_savedata["version"] ~= version then
         g_savedata = {
-            ['version'] = version,
-            ['ui_id'] = server.getMapID(),
+            ["version"] = version,
+            ["ui_id"] = server.getMapID(),
         }
     end
 
@@ -467,7 +467,7 @@ function buildPathfinder()
     end
 
     function pf:_getNodeKey(x, z)
-        return string.pack('ff', x, z)
+        return string.pack("ff", x, z)
     end
 
     function pf:_testRectAndLineCollision(rect_x1, rect_y1, rect_x2, rect_y2, line_x1, line_y1, line_x2, line_y2)
