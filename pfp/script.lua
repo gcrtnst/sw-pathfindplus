@@ -77,6 +77,7 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
     local plus_path_list = g_pf:pathfindOcean(matrix_start, matrix_end)
     local plus_time_end = server.getTimeMillisec()
     local plus_bench = plus_time_end - plus_time_start
+    local plus_reachable = g_pf:getOceanReachable(matrix_start, matrix_end)
 
     server.removeMapObject(user_peer_id, g_savedata['ui_id'])
     server.removeMapLine(user_peer_id, g_savedata['ui_id'])
@@ -128,7 +129,7 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
 
     local msg = {}
     table.insert(msg, string.format('PathfindOcean: %.1fms, %.1fkm', ocean_bench, ocean_dist/1000))
-    table.insert(msg, string.format('PathfindPlus: %.1fms, %.1fkm', plus_bench, plus_dist/1000))
+    table.insert(msg, string.format('PathfindPlus: %.1fms, %.1fkm%s', plus_bench, plus_dist/1000, plus_reachable and '' or ' [unreachable]'))
     server.announce(g_announce_name, table.concat(msg, '\n'))
 end
 
