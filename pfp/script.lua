@@ -128,8 +128,8 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
     end
 
     local msg = {}
-    table.insert(msg, string.format('PathfindOcean: %.1fms, %.1fkm', ocean_bench, ocean_dist/1000))
-    table.insert(msg, string.format('PathfindPlus: %.1fms, %.1fkm%s', plus_bench, plus_dist/1000, plus_reachable and '' or ' [unreachable]'))
+    table.insert(msg, string.format('PathfindOcean: %dms, %.1fkm', ocean_bench, ocean_dist/1000))
+    table.insert(msg, string.format('PathfindPlus: %dms, %.1fkm%s', plus_bench, plus_dist/1000, plus_reachable and '' or ' [unreachable]'))
     server.announce(g_announce_name, table.concat(msg, '\n'))
 end
 
