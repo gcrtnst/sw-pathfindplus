@@ -477,7 +477,7 @@ function buildPathfinder()
             return idx_x*idx_s*2 + idx_z
         end
 
-        return string.pack("ff", x, z)
+        return string.pack("nn", x, z)
     end
 
     function pf:_testRectAndLineCollision(rect_x1, rect_y1, rect_x2, rect_y2, line_x1, line_y1, line_x2, line_y2)

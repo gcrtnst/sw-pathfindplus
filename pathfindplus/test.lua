@@ -2629,12 +2629,12 @@ end
 function testGetNodeKey(t)
     local case_tbl = {
         {input_x = 0, input_z = 0, expected = 2098176},
-        {input_x = 1, input_z = 0, expected = string.pack("ff", 1, 0)},
-        {input_x = -1025000, input_z = 0, expected = string.pack("ff", -1025000, 0)},
-        {input_x = 1024000, input_z = 0, expected = string.pack("ff", 1024000, 0)},
-        {input_x = 0, input_z = 1, expected = string.pack("ff", 0, 1)},
-        {input_x = 0, input_z = -1025000, expected = string.pack("ff", 0, -1025000)},
-        {input_x = 0, input_z = 1024000, expected = string.pack("ff", 0, 1024000)},
+        {input_x = 1, input_z = 0, expected = string.pack("nn", 1, 0)},
+        {input_x = -1025000, input_z = 0, expected = string.pack("nn", -1025000, 0)},
+        {input_x = 1024000, input_z = 0, expected = string.pack("nn", 1024000, 0)},
+        {input_x = 0, input_z = 1, expected = string.pack("nn", 0, 1)},
+        {input_x = 0, input_z = -1025000, expected = string.pack("nn", 0, -1025000)},
+        {input_x = 0, input_z = 1024000, expected = string.pack("nn", 0, 1024000)},
         {input_x = -1024000, input_z = -1024000, expected = 0},
         {input_x = 1023000, input_z = 1023000, expected = 4194303},
         {input_x = -1024000, input_z = 1023000, expected = 2047},
