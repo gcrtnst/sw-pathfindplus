@@ -12,6 +12,7 @@ function test()
         {name = "testGetPathList", fn = testGetPathList},
         {name = "testReset", fn = testReset},
         {name = "testGetTileNode", fn = testGetTileNode},
+        {name = "testGetNodeKey", fn = testGetNodeKey},
         {name = "testTestRectAndLineCollision", fn = testTestRectAndLineCollision},
         {name = "testTestLineAndLineCollision", fn = testTestLineAndLineCollision},
         {name = "testHeap", fn = testHeap},
@@ -2621,6 +2622,29 @@ function testGetTileNode(t)
         local actual = t.pf:_getTileNode(case.input_x, case.input_z)
         if not deepEqual(case.expected, actual) then
             error(string.format("case #%d: wrong node", case_idx))
+        end
+    end
+end
+
+function testGetNodeKey(t)
+    local case_tbl = {
+        {input_x = 0, input_z = 0, expected = 2098176},
+        {input_x = 1, input_z = 0, expected = string.pack("ff", 1, 0)},
+        {input_x = -1025000, input_z = 0, expected = string.pack("ff", -1025000, 0)},
+        {input_x = 1024000, input_z = 0, expected = string.pack("ff", 1024000, 0)},
+        {input_x = 0, input_z = 1, expected = string.pack("ff", 0, 1)},
+        {input_x = 0, input_z = -1025000, expected = string.pack("ff", 0, -1025000)},
+        {input_x = 0, input_z = 1024000, expected = string.pack("ff", 0, 1024000)},
+        {input_x = -1024000, input_z = -1024000, expected = 0},
+        {input_x = 1023000, input_z = 1023000, expected = 4194303},
+        {input_x = -1024000, input_z = 1023000, expected = 2047},
+        {input_x = -1023000, input_z = -1024000, expected = 2048},
+    }
+
+    for case_idx, case in ipairs(case_tbl) do
+        local actual = t.pf:_getNodeKey(case.input_x, case.input_z)
+        if case.expected ~= actual then
+            error(string.format("case #%d: wrong key", case_idx))
         end
     end
 end

@@ -467,6 +467,16 @@ function buildPathfinder()
     end
 
     function pf:_getNodeKey(x, z)
+        local idx_s = 1024
+        if (
+            x%self._tile_size == 0 and -idx_s*self._tile_size <= x and x <= (idx_s - 1)*self._tile_size and
+            z%self._tile_size == 0 and -idx_s*self._tile_size <= z and z <= (idx_s - 1)*self._tile_size
+        ) then
+            local idx_x = x//self._tile_size + idx_s
+            local idx_z = z//self._tile_size + idx_s
+            return idx_x*idx_s*2 + idx_z
+        end
+
         return string.pack("ff", x, z)
     end
 
