@@ -229,10 +229,10 @@ function buildPathfinder()
             node.area_key = nil
         end
 
-        for _, this_node in pairs(self._node_tbl) do
+        for this_node_key, this_node in pairs(self._node_tbl) do
             local next_node_tbl = {}
             local next_node_ocean_tbl = {}
-            for _, dir in pairs({1, 2, 3, 4, 6, 7, 8, 9}) do
+            for _, dir in pairs({1, 2, 3, 4, 6}) do
                 local next_node_x = this_node.x + self._tile_size*((dir - 1)%3 - 1)
                 local next_node_z = this_node.z + self._tile_size*((dir - 1)//3 - 1)
                 local next_node_key = self:_getNodeKey(next_node_x, next_node_z)
@@ -254,6 +254,7 @@ function buildPathfinder()
                     cost = {ocean_dist = 0, risky_dist = dist}
                 end
                 this_node.edge_tbl[next_node_key] = cost
+                next_node.edge_tbl[this_node_key] = cost
             end
         end
     end
