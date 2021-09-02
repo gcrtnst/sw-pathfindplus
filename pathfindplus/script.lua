@@ -230,9 +230,9 @@ function buildPathfinder()
         end
 
         for this_node_key, this_node in pairs(self._node_tbl) do
-            local next_node_tbl = {}
+            local next_node_key_tbl = {}
             local next_node_ocean_tbl = {}
-            for _, dir in pairs({1, 2, 3, 4, 6}) do
+            for _, dir in pairs({2, 3, 6}) do
                 local next_node_x = this_node.x + self._tile_size*((dir - 1)%3 - 1)
                 local next_node_z = this_node.z + self._tile_size*((dir - 1)//3 - 1)
                 local next_node_key = self:_getNodeKey(next_node_x, next_node_z)
@@ -240,21 +240,32 @@ function buildPathfinder()
 
                 next_node_ocean_tbl[dir] = true
                 if next_node ~= nil then
-                    next_node_tbl[dir] = next_node_key
+                    next_node_key_tbl[dir] = next_node_key
                     next_node_ocean_tbl[dir] = next_node.is_ocean
                 end
             end
 
-            for dir, next_node_key in pairs(next_node_tbl) do
-                local next_node = self._node_tbl[next_node_key]
-                local dist = ((next_node.x - this_node.x)^2 + (next_node.z - this_node.z)^2)^0.5
+            for _, loop in pairs({
+                {foo_node_key = this_node_key, bar_node_key = next_node_key_tbl[2], is_ocean = this_node.is_ocean and next_node_ocean_tbl[2]},
+                {foo_node_key = this_node_key, bar_node_key = next_node_key_tbl[3], is_ocean = this_node.is_ocean and next_node_ocean_tbl[2] and next_node_ocean_tbl[3] and next_node_ocean_tbl[6]},
+                {foo_node_key = this_node_key, bar_node_key = next_node_key_tbl[6], is_ocean = this_node.is_ocean and next_node_ocean_tbl[6]},
+                {foo_node_key = next_node_key_tbl[2], bar_node_key = next_node_key_tbl[6], is_ocean = this_node.is_ocean and next_node_ocean_tbl[2] and next_node_ocean_tbl[3] and next_node_ocean_tbl[6]},
+            }) do
+                if loop.foo_node_key ~= nil and loop.bar_node_key ~= nil then
+                    local foo_node = self._node_tbl[loop.foo_node_key]
+                    local bar_node = self._node_tbl[loop.bar_node_key]
 
-                local cost = {ocean_dist = dist, risky_dist = 0}
-                if (not this_node.is_ocean) or (not next_node.is_ocean) or (dir%2 == 1 and (not next_node_ocean_tbl[((dir - 1)//3)*3 + 2] or not next_node_ocean_tbl[(dir - 1)%3 + 4])) then
-                    cost = {ocean_dist = 0, risky_dist = dist}
+                    local cost
+                    local dist = ((foo_node.x - bar_node.x)^2 + (foo_node.z - bar_node.z)^2)^0.5
+                    if loop.is_ocean then
+                        cost = {ocean_dist = dist, risky_dist = 0}
+                    else
+                        cost = {ocean_dist = 0, risky_dist = dist}
+                    end
+
+                    foo_node.edge_tbl[loop.bar_node_key] = cost
+                    bar_node.edge_tbl[loop.foo_node_key] = cost
                 end
-                this_node.edge_tbl[next_node_key] = cost
-                next_node.edge_tbl[this_node_key] = cost
             end
         end
     end
