@@ -12,11 +12,11 @@ Disadvantages of PathfindPlus:
  - You need to add about 16000 characters of code to the script. This corresponds to about 12% of the maximum number of characters in the script (131072).
 
 ## How to test PathfindPlus
-You can test PathfindPlus with addons available on [GitHub](https://github.com/gcrtnst/sw-pathfindplus/tree/main/pathfindplus) or Steam Workshop (to be released later).
+You can test PathfindPlus with addons available on [GitHub](https://github.com/gcrtnst/sw-pathfindplus/tree/main/pathfindplus) or [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=2594168437).
 
 ### Installing Addons
 Addons can be installed as usual.
- 1. Subscribe to the work in Steam Workshop. Alternatively, you can copy the [pathfindplus/](https://github.com/gcrtnst/sw-pathfindplus/tree/main/pathfindplus) directory itself under `%APPDATA%\Stormworks\data\missions`.
+ 1. Subscribe to [the work in Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=2594168437). Alternatively, you can copy the [pathfindplus/](https://github.com/gcrtnst/sw-pathfindplus/tree/main/pathfindplus) directory itself under `%APPDATA%\Stormworks\data\missions`.
  1. From the Stormworks title screen, go to New Game > Enabled Addons to display the addons list.
  1. Check "PathfindPlus" in the "Saved" tab or "Workshop" tab.
  1. Then, create a new game as usual, and the addon will be enabled.
@@ -107,4 +107,5 @@ PathfindPlus is distributed under the terms of [The Unlicense](https://github.co
 
 # Links
  - GitHub Repository: [https://github.com/gcrtnst/sw-pathfindplus](https://github.com/gcrtnst/sw-pathfindplus)
+ - Steam Workshop: [https://steamcommunity.com/sharedfiles/filedetails/?id=2594168437](https://steamcommunity.com/sharedfiles/filedetails/?id=2594168437)
  - Bug Report: [https://geometa.co.uk/support/stormworks/117/](https://geometa.co.uk/support/stormworks/117/)
