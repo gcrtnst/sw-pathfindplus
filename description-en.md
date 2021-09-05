@@ -2,7 +2,7 @@
 PathfindPlus is an alternative implementation of ocean pathfinding that runs on the Stormworks addon.
 
 ## Overview
-The Stormworks addon Lua already has a builtin function called `server.pathfindOcean` as a way to perform ocean pathfinding. Unfortunately, this function is prone to failure and is not very useful (see [the bug report](https://geometa.co.uk/support/stormworks/117/) for details). So I created PathfindPlus as an alternative implementation.
+The Stormworks addon Lua already has a builtin function called `server.pathfindOcean` as a way to perform ocean pathfinding. Unfortunately, this function is not very useful because it is prone to failure (see [the bug report](https://geometa.co.uk/support/stormworks/117/) for details). So I created PathfindPlus as an alternative implementation.
 
 Advantages of PathfindPlus:
  - Pathfinding will always be successful, no matter what your starting point and destination are.
