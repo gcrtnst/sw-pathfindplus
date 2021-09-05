@@ -74,7 +74,6 @@ end
 function buildPathfinder()
     -- snip
 end
-
 ```
 
 ### パフォーマンス Tips
@@ -86,9 +85,7 @@ PathfindPlus は `server.pathfindOcean` と比較してパフォーマンスが�
 
 ### リファレンス
 #### `pf = buildPathfinder()`
-`buildPathfinder` 関数はPathfinder オブジェクトを生成し、初期化して返します。
-初期化にはおよそ5秒程度掛かります。
-Pathfinder オブジェクトは関数や非 ASCII 文字列を含むため、`g_savedata` に格納してセーブすることはできません。
+`buildPathfinder` 関数はPathfinder オブジェクトを生成し、初期化して返します。初期化にはおよそ5秒程度掛かります。Pathfinder オブジェクトは関数や非 ASCII 文字列を含むため、`g_savedata` に格納してセーブすることはできません。
 
 #### `{ [i] = {x = world_x, z = world_z} } = pf:pathfindOcean(matrix_start, matrix_end)`
 `pathfindOcean` メソッドは海洋経路探索を行います。
