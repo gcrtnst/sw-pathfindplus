@@ -74,7 +74,6 @@ end
 function buildPathfinder()
     -- snip
 end
-
 ```
 
 ### Performance Tips
@@ -86,9 +85,7 @@ PathfindPlus does not perform as well as `server.pathfindOcean`. Please keep the
 
 ### Reference
 #### `pf = buildPathfinder()`
-`buildPathfinder` creates a Pathfinder object, initializes it and returns it.
-It takes about 5 seconds to initialize.
-Pathfinder objects cannot be saved in `g_savedata` because they contain functions and non-ASCII strings.
+`buildPathfinder` creates a Pathfinder object, initializes it and returns it. It takes about 5 seconds to initialize. Pathfinder objects cannot be saved in `g_savedata` because they contain functions and non-ASCII strings.
 
 #### `{ [i] = {x = world_x, z = world_z} } = pf:pathfindOcean(matrix_start, matrix_end)`
 `pathfindOcean` performs ocean pathfinding.
