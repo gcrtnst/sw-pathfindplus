@@ -1,4 +1,5 @@
 # PathfindPlus
 PathfindPlus is a Stormworks addon that implements ocean pathfinding without using the buggy `server.pathfindOcean`.
 
-PathfindPlus is currently under development and may contain bugs.
+ - Description (日本語): [description-ja.md](description-ja.md)
+ - Description (Translation in poor English): [description-en.md](description-en.md)
