@@ -12,11 +12,11 @@ PathfindPlus の欠点：
  - スクリプトに約16000文字のコードを追加する必要があります。これは、スクリプトの最大文字数(131072文字)のおよそ12%に相当します。
 
 ## 動作確認方法
-[GitHub](https://github.com/gcrtnst/sw-pathfindplus/tree/main/pathfindplus) または Steam Workshop（後日公開予定）で公開されているアドオンを使用することで、PathfindPlus の挙動を確認できます。
+[GitHub](https://github.com/gcrtnst/sw-pathfindplus/tree/main/pathfindplus) または [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=2594168437) で公開されているアドオンを使用することで、PathfindPlus の挙動を確認できます。
 
 ### アドオンの導入
 アドオンの導入方法は他のアドオンと同じです。
- 1. Steam Workshop の作品をサブスクライブします。もしくは、[pathfindplus/](https://github.com/gcrtnst/sw-pathfindplus/tree/main/pathfindplus) ディレクトリそのものを `%APPDATA%\Stormworks\data\missions` の下へコピーします。
+ 1. [Steam Workshop の作品](https://steamcommunity.com/sharedfiles/filedetails/?id=2594168437)をサブスクライブします。もしくは、[pathfindplus/](https://github.com/gcrtnst/sw-pathfindplus/tree/main/pathfindplus) ディレクトリそのものを `%APPDATA%\Stormworks\data\missions` の下へコピーします。
  1. Stormworks のタイトル画面から New Game > Enabled Addons と進み、アドオン一覧を表示させます。
  1. 「Saved」タブまたは「Workshop」タブ内にある「PathfindPlus」にチェックを入れます。
  1. このまま新規ワールドを作成すると、アドオンが有効になります。
@@ -107,4 +107,5 @@ PathfindPlus は [The Unlicense](https://github.com/gcrtnst/sw-pathfindplus/blob
 
 # リンク
  - GitHub リポジトリ：[https://github.com/gcrtnst/sw-pathfindplus](https://github.com/gcrtnst/sw-pathfindplus)
+ - Steam Workshop：[https://steamcommunity.com/sharedfiles/filedetails/?id=2594168437](https://steamcommunity.com/sharedfiles/filedetails/?id=2594168437)
  - バグレポート：[https://geometa.co.uk/support/stormworks/117/](https://geometa.co.uk/support/stormworks/117/)
